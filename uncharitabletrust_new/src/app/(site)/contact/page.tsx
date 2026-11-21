@@ -1,0 +1,6 @@
+import {PageIntro} from '@/components/shared';
+import {RequestForm} from '@/components/request-form';
+import {contact} from '@/lib/content';
+import {Phone,Mail,MapPin} from 'lucide-react';
+export const metadata={title:'Get in touch'};
+export default async function ContactPage({searchParams}:{searchParams:Promise<{subject?:string}>}){const {subject}=await searchParams;return <><PageIntro eyebrow="Get in touch" title="Good things start with a conversation." description="Have a question, an idea, or a little time to give? Our team would love to hear from you."/><section className="page-content"><div className="container form-layout"><div className="contact-details"><h2>We’re here.<br/><em>Let’s connect.</em></h2><p>Reach out about our programmes, book donations, membership, or ways to support the community.</p><div className="contact-item"><Phone size={22}/><div><strong>Give us a call</strong><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></div></div><div className="contact-item"><Mail size={22}/><div><strong>Write to us</strong><a href={`mailto:${contact.email}`}>{contact.email}</a></div></div><div className="contact-item"><MapPin size={22}/><div><strong>Find us in Silvassa</strong><p>{contact.address}</p></div></div></div><RequestForm kind="contact" initialSubject={subject?.slice(0,120)}/></div></section></>}
