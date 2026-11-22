@@ -48,25 +48,23 @@ export function CommunityStory() {
         });
       });
       mm.add('(min-width:900px) and (prefers-reduced-motion: no-preference)', () => {
-        gsap.utils
-          .toArray<HTMLElement>('.context-photo img', scope.current)
-          .forEach((image) =>
-            gsap.fromTo(
-              image,
-              {scale: 1.08, yPercent: -3},
-              {
-                scale: 1.02,
-                yPercent: 3,
-                ease: 'none',
-                scrollTrigger: {
-                  trigger: image.parentElement,
-                  start: 'top bottom',
-                  end: 'bottom top',
-                  scrub: 1,
-                },
+        gsap.utils.toArray<HTMLElement>('.context-photo img', scope.current).forEach((image) =>
+          gsap.fromTo(
+            image,
+            {scale: 1.08, yPercent: -3},
+            {
+              scale: 1.02,
+              yPercent: 3,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: image.parentElement,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 1,
               },
-            ),
-          );
+            },
+          ),
+        );
       });
       return () => mm.revert();
     },

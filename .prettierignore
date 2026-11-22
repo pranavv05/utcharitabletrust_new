@@ -7,3 +7,4 @@ supabase/
 src/lib/*.json
 next-env.d.ts
 *.md
+tsconfig.json
