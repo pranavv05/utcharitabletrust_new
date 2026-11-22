@@ -23,6 +23,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import {ThemeToggle} from '@/components/theme-toggle';
+import {QuickSearch} from '@/components/admin/quick-search';
 const groups: {label: string; items: [string, string, LucideIcon][]}[] = [
   {
     label: 'WORKSPACE',
@@ -205,6 +206,7 @@ export function AdminShell({children, name, role}: {children: React.ReactNode; n
           </div>
           <div className="admin-topbar-end">
             <span className="admin-environment">UT Charitable Trust</span>
+            <QuickSearch />
             <AdminLive />
             <ThemeToggle />
             <span className="admin-avatar small">{name.slice(0, 1).toUpperCase()}</span>
