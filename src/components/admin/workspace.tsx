@@ -3,6 +3,7 @@ import {trustDate, clampRecordPage} from '@/lib/admin/dates';
 import {parseDonationCsv} from '@/lib/admin/donation-csv';
 import {PersonChooser} from './person-chooser';
 import {LookupInput} from './lookup-input';
+import {BookScanner, type ScannedBook} from './book-scanner';
 import {PersonProfile, LoanTools, ApplicationApproval} from './workflow-tools';
 import {useEffect, useRef, useState, useId} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
@@ -20,6 +21,7 @@ import {
   LoaderCircle,
   RotateCcw,
   Trash2,
+  Camera,
 } from 'lucide-react';
 import {sections, labels, display, type Row, type Section, type Field} from '@/lib/admin/config';
 import {Badge} from './dashboard';
@@ -281,6 +283,13 @@ function SaveForm({section, row, onDone}: {section: Section; row: Row | null; on
 function DonationForm({onDone}: {onDone: (id: string) => void}) {
   const [person, setPerson] = useState<Row[]>([]);
   const [books, setBooks] = useState([{title: '', author: '', class_name: ''}]);
+  const [scanning, setScanning] = useState(false);
+  function addScanned(book: ScannedBook) {
+    setBooks((current) => {
+      const blank = current.length === 1 && !current[0].title && !current[0].author && !current[0].class_name;
+      return blank ? [book] : current.length >= 200 ? current : [...current, book];
+    });
+  }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function submit(e: React.FormEvent) {
@@ -303,6 +312,13 @@ function DonationForm({onDone}: {onDone: (id: string) => void}) {
   return (
     <form className="admin-form" onSubmit={submit}>
       <PersonChooser type="donar" selected={person} onChange={setPerson} />
+      <div className="admin-scan-cta">
+        <button type="button" className="admin-button secondary" onClick={() => setScanning(true)}>
+          <Camera size={17} /> Scan books with the camera
+        </button>
+        <small>Take a photo of a barcode or cover and the title, author and class fill in for you.</small>
+      </div>
+      {scanning && <BookScanner onAdd={addScanned} onClose={() => setScanning(false)} />}
       <label className="admin-inline-create">
         Import copies from CSV
         <input

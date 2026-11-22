@@ -75,6 +75,16 @@ Membership applications have an approval action. It creates a member atomically 
 
 **Record review**, available only to administrators, lists the first 200 overlapping outstanding claims on a copy. Staff must verify the correct loan against their physical records, choose it and enter evidence. The other claims receive `corrected` ledger entries rather than fabricated physical returns. Their headers become `closed_correction` if nothing remains outstanding, while original issue items stay intact and the copy remains issued to the verified loan. This is an explicit operational correction; no historical conflict is resolved automatically.
 
+## Scanning a book to fill in its details
+
+On **Add donation**, **Scan books with the camera** opens a dialog. Staff take a photo (or choose one) of the barcode on the back cover or of the front cover:
+
+1. The browser tries to read an ISBN barcode in the photo (the browser's own detector when available, otherwise a bundled decoder). A valid ISBN is looked up in Open Library, then Google Books. This is free and exact.
+2. If there is no readable barcode, or the book is not found, the cover photo is read by a vision model through `POST /api/admin/book-scan`. This needs `GROQ_API_KEY` on the server (model from `GROQ_VISION_MODEL`). Without a key the dialog says so and staff type the details.
+3. Staff always review and can edit the title, author and class before adding the book to the donation list. The dialog stays open so many books can be added in a row.
+
+Privacy and cost: only the downscaled cover photo is sent to the provider, never donor or borrower data. Each staff member is limited to 30 scans per 10 minutes. ISBN lookups send only the ISBN to the public book databases. A typed ISBN can also be looked up directly. Barcode reading, ISBN validation and the reading service are covered by automated tests; phone camera quality varies, so a blurry photo may need to be retaken.
+
 ## Live updates and persistence
 
 Successful writes are acknowledged only after Supabase confirms them. Database transactions protect multi-record operations; failed writes do not display success. Change triggers increment rows in `public.trust_changes`, whose contents are limited to scope, version and timestamp. Only those counters are added to the Realtime publication. Private borrower, membership, audit and submission rows are never replicated to public clients.
