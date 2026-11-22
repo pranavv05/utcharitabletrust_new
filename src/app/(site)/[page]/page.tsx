@@ -7,6 +7,7 @@ import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import {PageIntro, ProgrammeCards, JoinBanner, Values} from '@/components/shared';
 import {getSiteContent} from '@/lib/site-content';
+import {OurWorkExplorer} from '@/components/our-work-explorer';
 const pages: Record<string, {title: string; eyebrow: string; description: string}> = {
   about: {
     title: 'A community that cares.',
@@ -31,11 +32,6 @@ const pages: Record<string, {title: string; eyebrow: string; description: string
     eyebrow: 'From our president',
     description: 'A message from Mr. Pradip Mishra on community, care, and the work that brings us together.',
   },
-  certificates: {
-    title: 'Built on trust.',
-    eyebrow: 'Our certificates',
-    description: 'View the certificates and documents published by UT Charitable Trust.',
-  },
   privacy: {
     title: 'Your information, treated with care.',
     eyebrow: 'Privacy',
@@ -51,7 +47,7 @@ export async function generateMetadata({params}: {params: Promise<{page: string}
 }
 export default async function ContentPage({params}: {params: Promise<{page: string}>}) {
   const {page} = await params;
-  const {team} = await getSiteContent();
+  const {team, programmes, gallery} = await getSiteContent();
   const content = pages[page];
   if (!content) notFound();
   return (
@@ -138,7 +134,7 @@ export default async function ContentPage({params}: {params: Promise<{page: stri
               <Values />
             </>
           )}
-          {page === 'our-work' && <ProgrammeCards />}
+          {page === 'our-work' && <OurWorkExplorer programmes={programmes} gallery={gallery} />}
           {page === 'team' && <TeamDirectory team={team} />}
           {page === 'president-message' && (
             <div className="president-grid">
@@ -170,30 +166,6 @@ export default async function ContentPage({params}: {params: Promise<{page: stri
                   Connect with the trust
                 </Link>
               </div>
-            </div>
-          )}
-          {page === 'certificates' && (
-            <div className="cert-grid">
-              {[1, 2, 4, 5].map((n, i) => (
-                <article className="cert-card" key={n}>
-                  <a href={`/images/cert/cert${n}.webp`} target="_blank" rel="noreferrer">
-                    <TrustImage
-                      src={`/images/cert/cert${n}.webp`}
-                      alt={`Published trust certificate ${i + 1}`}
-                      loading="lazy"
-                    />
-                  </a>
-                  <h3>Trust certificate {i + 1}</h3>
-                  <a
-                    className="text-link"
-                    href={`/images/cert/cert${n}.webp`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View full document
-                  </a>
-                </article>
-              ))}
             </div>
           )}
           {page === 'privacy' && (

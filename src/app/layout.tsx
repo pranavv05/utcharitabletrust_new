@@ -6,6 +6,7 @@ import '@/styles/experience.css';
 import '@/styles/visual-refresh.css';
 import '@/styles/public-refinement.css';
 import '@/styles/image-fit.css';
+import '@/styles/sections.css';
 
 const display = localFont({
   src: '../styles/fonts/display.ttf',

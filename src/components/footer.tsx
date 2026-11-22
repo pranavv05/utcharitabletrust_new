@@ -2,7 +2,10 @@ import {gmailLink, whatsappLink, trustContacts} from '@/lib/contact-links';
 import {BrandLogo} from '@/components/brand-logo';
 import Link from 'next/link';
 import {Instagram, Facebook} from 'lucide-react';
-export function Footer() {
+import {getSiteContent} from '@/lib/site-content';
+import {IsoBadge} from '@/components/iso-badge';
+export async function Footer() {
+  const {iso} = await getSiteContent();
   return (
     <footer className="immersive-footer">
       <div className="experience-container">
@@ -31,12 +34,16 @@ export function Footer() {
             <Link href="/our-work">Our work</Link>
             <Link href="/book-bank">Book bank</Link>
             <Link href="/gallery">Gallery</Link>
+            <Link href="/news">News & Media</Link>
           </div>
           <div>
             <span className="overline">THE TRUST</span>
             <Link href="/team">Our people</Link>
             <Link href="/president-message">President’s message</Link>
-            <Link href="/certificates">Certificates</Link>
+            <Link href="/legal">Legal documents</Link>
+            <Link href="/partners">Our partners</Link>
+            <Link href="/testimonials">Testimonials</Link>
+            <Link href="/interns">Our interns</Link>
             <Link href="/privacy">Privacy</Link>
           </div>
           <div>
@@ -60,6 +67,11 @@ export function Footer() {
         <div className="footer-wordmark" aria-label="UT Charitable Trust">
           Together<span>.</span>
         </div>
+        {iso && (
+          <div className="footer-iso">
+            <IsoBadge iso={iso} variant="line" />
+          </div>
+        )}
         <div className="footer-copyright">
           <span>© {new Date().getFullYear()} UT Charitable Trust</span>
           <span>People. Purpose. Possibility.</span>
