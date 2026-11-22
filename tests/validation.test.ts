@@ -61,3 +61,10 @@ test('staff access bodies need a valid email, name and role', async () => {
   assert.equal(staffAccessSchema.safeParse({email: 'a@b.co', name: 'Asha', role: 'root'}).success, false);
   assert.equal(staffAccessSchema.safeParse({email: 'a@b.co', name: '', role: 'admin'}).success, false);
 });
+
+test('a missing website_content function falls back, other database errors do not', async () => {
+  const {isContentNotDeployed} = await import('../src/lib/content');
+  assert.equal(isContentNotDeployed({code: 'PGRST202'}), true);
+  assert.equal(isContentNotDeployed({code: '42501'}), false);
+  assert.equal(isContentNotDeployed(null), false);
+});

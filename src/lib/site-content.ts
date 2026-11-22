@@ -1,6 +1,6 @@
 import {cache} from 'react';
 import {serverClient} from '@/lib/supabase/server';
-import {programmes, gallery} from '@/lib/content';
+import {programmes, gallery, isContentNotDeployed} from '@/lib/content';
 import team from '@/lib/team.json';
 import {photoDetails, photoCategory} from './photos';
 export type SiteContent = {
@@ -15,6 +15,11 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   const db = await serverClient();
   if (!db) return fallback;
   const {data, error} = await db.rpc('website_content');
+  if (isContentNotDeployed(error)) {
+    // The CMS migrations are not applied: serve the bundled content instead of an error page.
+    console.error('website_content() is missing; serving bundled content. Apply the Supabase migrations.');
+    return fallback;
+  }
   if (error || !Array.isArray(data)) throw Error('Published website content is temporarily unavailable.');
   const rows = data as Entry[];
   return {

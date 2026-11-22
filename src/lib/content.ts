@@ -130,3 +130,6 @@ export const contact = {
 };
 export const isConfigured = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
+/** PostgREST reports PGRST202 when the function does not exist, i.e. migrations are not applied yet. */
+export const isContentNotDeployed = (error: {code?: string} | null) => error?.code === 'PGRST202';
