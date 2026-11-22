@@ -1,92 +1,34 @@
 import {BrandLogo} from '@/components/brand-logo';
 import {notFound} from 'next/navigation';
 import {requireStaff} from '@/lib/admin/auth';
-import {display, type Row} from '@/lib/admin/config';
 import {PrintButton} from '@/components/admin/print-button';
+import {ReceiptDocument, type ReceiptTrust} from '@/components/admin/receipt';
+import {getSiteContent} from '@/lib/site-content';
+import {trustContacts} from '@/lib/contact-links';
+import {trustDate} from '@/lib/admin/dates';
+
 export default async function Receipt({params}: {params: Promise<{id: string}>}) {
   const {id} = await params;
   const {db} = await requireStaff();
   const {data, error} = await db.rpc('admin_record', {p_entity: 'loans', p_id: id});
   if (error || !data) notFound();
-  const person = data.person || {};
-  const items = data.items as Row[];
+  // The registration number and certification come from the published Legal documents, so they are
+  // never typed in two places. Nothing is printed until an administrator has entered them there.
+  const site = await getSiteContent().catch(() => null);
+  const trust: ReceiptTrust = {
+    name: 'UT Charitable Trust',
+    address: trustContacts.address,
+    phone: trustContacts.events.number,
+    email: trustContacts.email,
+    registration: site?.legal.find((d) => d.group === 'registration' && d.number)?.number,
+    iso: site?.iso?.standard,
+  };
   return (
-    <article className="admin-receipt">
-      <div className="admin-receipt-header">
-        <BrandLogo />
+    <>
+      <div className="receipt-toolbar admin-no-print">
         <PrintButton />
       </div>
-      <p className="admin-eyebrow">UT CHARITABLE TRUST · BOOK BANK</p>
-      <h1>
-        {data.status === 'new'
-          ? 'Donation'
-          : data.status === 'issue'
-            ? 'Book issue'
-            : data.status === 'return'
-              ? 'Book return'
-              : data.status === 'partial_return'
-                ? 'Partial return'
-                : data.status === 'lost'
-                  ? 'Loss record'
-                  : data.status === 'closed_correction'
-                    ? 'Historical correction'
-                    : 'Book transaction'}{' '}
-        receipt
-      </h1>
-      <p>
-        Reference: <strong>{data.orderNo}</strong>
-      </p>
-      <div className="admin-detail-meta">
-        <div>
-          <small>PERSON</small>
-          <strong>{display(person.name)}</strong>
-          <span>{display(person.email)}</span>
-          <span>{display(person.phone)}</span>
-          <span>{display(person.address)}</span>
-        </div>
-        <div>
-          <small>TRANSACTION</small>
-          <strong>{display(data.issueDate)}</strong>
-          <span>Due: {display(data.endDate)}</span>
-          <span>Final return: {display(data.returnDate)}</span>
-          <span>Status: {display(data.status)}</span>
-        </div>
-      </div>
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Book title</th>
-            <th>Author</th>
-            <th>Class</th>
-            <th>UTBN</th>
-            <th>Return / loss</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((b, i) => (
-            <tr key={String(b.id) + i}>
-              <td>{display(b.bookName)}</td>
-              <td>{display(b.author)}</td>
-              <td>{display(b.class)}</td>
-              <td>{display(b.utbn)}</td>
-              <td>
-                {display(b.disposition)}
-                {b.returned_at ? ` · ${b.returned_at}` : ''}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {data.penaltyAmount && <p>Recorded manual penalty: ₹{data.penaltyAmount}</p>}
-      {data.penaltyReason && <p>Reason: {data.penaltyReason}</p>}
-      <div className="admin-receipt-foot">
-        <strong>Thank you for keeping learning within reach.</strong>
-        <p>UT Charitable Trust · +91 93779 58582 · help@utcharitabletrust.com</p>
-        <small>
-          This receipt reflects recorded transactions. Penalties are entered by staff, not automatically
-          calculated.
-        </small>
-      </div>
-    </article>
+      <ReceiptDocument data={data} trust={trust} logo={<BrandLogo />} printedOn={trustDate()} />
+    </>
   );
 }
