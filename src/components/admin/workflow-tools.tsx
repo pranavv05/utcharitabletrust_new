@@ -1,9 +1,246 @@
 'use client';
 import {renewalMin} from '@/lib/admin/dates';
-import {useEffect,useState} from 'react';
+import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {send} from './workspace';
-import {display,type Row} from '@/lib/admin/config';
-export function PersonProfile({id}:{id:string}){const[data,setData]=useState<Row|null>(null),[error,setError]=useState(''),[revision,setRevision]=useState(0);useEffect(()=>{const refresh=()=>setRevision(x=>x+1);window.addEventListener('trust:changed',refresh);return()=>window.removeEventListener('trust:changed',refresh)},[]);useEffect(()=>{const c=new AbortController();fetch('/api/admin/person?id='+encodeURIComponent(id),{signal:c.signal}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.message);setData(d)}).catch(e=>{if(!c.signal.aborted)setError(e.message)});return()=>c.abort()},[id,revision]);return error?<p role="alert">{error}</p>:!data?<p>Loading person…</p>:<><dl className="admin-detail-list">{['name','email','phone','address','type','outstanding'].map(k=><div key={k}><dt>{k==='outstanding'?'Outstanding loans':k}</dt><dd>{display(data[k])}</dd></div>)}</dl><h3 className="admin-subheading">Transaction history</h3><p className="admin-form-help">Latest 200 transactions. Open a reference to see copies and receipts.</p><div className="admin-table-scroll"><table className="admin-table"><thead><tr><th>Reference</th><th>Date</th><th>Due</th><th>Copies</th><th>Status</th></tr></thead><tbody>{(data.transactions as Row[]).map(t=><tr key={String(t.id)}><td><Link className="admin-record-link" href={'/admin/loans?id='+t.id}>{display(t.orderNo)}</Link></td><td>{display(t.issueDate)}</td><td>{display(t.endDate)}</td><td>{display(t.copies)}</td><td>{t.status==='new'?'Donation received':display(t.status)}</td></tr>)}</tbody></table>{!(data.transactions as Row[]).length&&<p>No transactions yet.</p>}</div></>}
-export function LoanTools({id,data,canWrite,onChanged}:{id:string;data:Row;canWrite:boolean;onChanged:()=>void}){const[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');const open=['issue','partial_return'].includes(String(data.status));async function submit(e:React.FormEvent<HTMLFormElement>,entity:string){e.preventDefault();const form=e.currentTarget;setError('');setNotice('');setBusy(true);try{await send(entity,{...Object.fromEntries(new FormData(form)),transaction_id:id});form.reset();setNotice(entity==='renew'?'Due date updated.':'Follow-up saved.');onChanged()}catch(e){setError((e as Error).message)}finally{setBusy(false)}}return <section className="admin-loan-tools">{error&&<p role="alert" className="admin-notice error">{error}</p>}{notice&&<p role="status" className="admin-notice success">{notice}</p>}{canWrite&&open&&<div className="admin-settings-grid"><form className="admin-form" onSubmit={e=>submit(e,'renew')}><h3>Renew this loan</h3><label>New due date<input type="date" name="due_date" required min={renewalMin(data.endDate)}/></label><label>Reason<textarea name="reason" required minLength={3} maxLength={1000}/></label><button disabled={busy} className="admin-button secondary">Save renewal</button></form><form className="admin-form" onSubmit={e=>submit(e,'followup')}><h3>Record borrower follow-up</h3><label>Contact method<select name="channel"><option value="phone">Phone</option><option value="email">Email</option><option value="in_person">In person</option><option value="other">Other</option></select></label><label>What happened?<textarea name="note" required minLength={3} maxLength={2000}/></label><p className="admin-form-help">Records a conversation or attempt. This does not send a message.</p><button disabled={busy} className="admin-button secondary">Save follow-up</button></form></div>}<h3>Follow-up history</h3>{(data.followups as Row[]||[]).map((f,i)=><article className="admin-followup" key={i}><strong>{display(f.channel)} · {display(f.name)}</strong><small>{new Date(String(f.created_at)).toLocaleString('en-IN')}</small><p>{display(f.note)}</p></article>)}{!(data.followups as Row[]||[]).length&&<p className="admin-form-help">No follow-ups recorded.</p>}</section>}
-export function ApplicationApproval({row,onDone}:{row:Row;onDone:()=>void}){const[info,setInfo]=useState<Row|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');useEffect(()=>{fetch('/api/admin/application?id='+row.id).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.message);setInfo(d)}).catch(e=>setError(e.message))},[row.id]);async function approve(){setBusy(true);setError('');try{await send('approve',{submission_id:row.id,existing_member_id:(info?.existing_member as Row)?.id});onDone()}catch(e){setError((e as Error).message)}finally{setBusy(false)}}return <div className="admin-inline-create"><h3>Membership decision</h3>{error&&<p role="alert" className="admin-notice error">{error}</p>}{!info?<p>Checking member records…</p>:info.approved_member_id?<p>This application has already been approved. <Link href="/admin/members" className="admin-text-link">View members</Link></p>:<>{!!info.existing_member&&<p>A member with this email already exists: {display((info.existing_member as Row).name)}. Approval links this application to that record without overwriting it.</p>}<p className="admin-form-help">Approve only after reviewing the application. This creates or links a community member; it does not grant a staff login.</p><button className="admin-button primary" disabled={busy||row.status==='archived'} onClick={approve}>{busy?'Approving…':info.existing_member?'Approve and link existing member':'Approve and create member'}</button></>}</div>}
+import {display, type Row} from '@/lib/admin/config';
+export function PersonProfile({id}: {id: string}) {
+  const [data, setData] = useState<Row | null>(null),
+    [error, setError] = useState(''),
+    [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const refresh = () => setRevision((x) => x + 1);
+    window.addEventListener('trust:changed', refresh);
+    return () => window.removeEventListener('trust:changed', refresh);
+  }, []);
+  useEffect(() => {
+    const c = new AbortController();
+    fetch('/api/admin/person?id=' + encodeURIComponent(id), {signal: c.signal})
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok) throw Error(d.message);
+        setData(d);
+      })
+      .catch((e) => {
+        if (!c.signal.aborted) setError(e.message);
+      });
+    return () => c.abort();
+  }, [id, revision]);
+  return error ? (
+    <p role="alert">{error}</p>
+  ) : !data ? (
+    <p>Loading person…</p>
+  ) : (
+    <>
+      <dl className="admin-detail-list">
+        {['name', 'email', 'phone', 'address', 'type', 'outstanding'].map((k) => (
+          <div key={k}>
+            <dt>{k === 'outstanding' ? 'Outstanding loans' : k}</dt>
+            <dd>{display(data[k])}</dd>
+          </div>
+        ))}
+      </dl>
+      <h3 className="admin-subheading">Transaction history</h3>
+      <p className="admin-form-help">Latest 200 transactions. Open a reference to see copies and receipts.</p>
+      <div className="admin-table-scroll">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Date</th>
+              <th>Due</th>
+              <th>Copies</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(data.transactions as Row[]).map((t) => (
+              <tr key={String(t.id)}>
+                <td>
+                  <Link className="admin-record-link" href={'/admin/loans?id=' + t.id}>
+                    {display(t.orderNo)}
+                  </Link>
+                </td>
+                <td>{display(t.issueDate)}</td>
+                <td>{display(t.endDate)}</td>
+                <td>{display(t.copies)}</td>
+                <td>{t.status === 'new' ? 'Donation received' : display(t.status)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!(data.transactions as Row[]).length && <p>No transactions yet.</p>}
+      </div>
+    </>
+  );
+}
+export function LoanTools({
+  id,
+  data,
+  canWrite,
+  onChanged,
+}: {
+  id: string;
+  data: Row;
+  canWrite: boolean;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState(''),
+    [notice, setNotice] = useState('');
+  const open = ['issue', 'partial_return'].includes(String(data.status));
+  async function submit(e: React.FormEvent<HTMLFormElement>, entity: string) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    setError('');
+    setNotice('');
+    setBusy(true);
+    try {
+      await send(entity, {...Object.fromEntries(new FormData(form)), transaction_id: id});
+      form.reset();
+      setNotice(entity === 'renew' ? 'Due date updated.' : 'Follow-up saved.');
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="admin-loan-tools">
+      {error && (
+        <p role="alert" className="admin-notice error">
+          {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="admin-notice success">
+          {notice}
+        </p>
+      )}
+      {canWrite && open && (
+        <div className="admin-settings-grid">
+          <form className="admin-form" onSubmit={(e) => submit(e, 'renew')}>
+            <h3>Renew this loan</h3>
+            <label>
+              New due date
+              <input type="date" name="due_date" required min={renewalMin(data.endDate)} />
+            </label>
+            <label>
+              Reason
+              <textarea name="reason" required minLength={3} maxLength={1000} />
+            </label>
+            <button disabled={busy} className="admin-button secondary">
+              Save renewal
+            </button>
+          </form>
+          <form className="admin-form" onSubmit={(e) => submit(e, 'followup')}>
+            <h3>Record borrower follow-up</h3>
+            <label>
+              Contact method
+              <select name="channel">
+                <option value="phone">Phone</option>
+                <option value="email">Email</option>
+                <option value="in_person">In person</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              What happened?
+              <textarea name="note" required minLength={3} maxLength={2000} />
+            </label>
+            <p className="admin-form-help">
+              Records a conversation or attempt. This does not send a message.
+            </p>
+            <button disabled={busy} className="admin-button secondary">
+              Save follow-up
+            </button>
+          </form>
+        </div>
+      )}
+      <h3>Follow-up history</h3>
+      {((data.followups as Row[]) || []).map((f, i) => (
+        <article className="admin-followup" key={i}>
+          <strong>
+            {display(f.channel)} · {display(f.name)}
+          </strong>
+          <small>{new Date(String(f.created_at)).toLocaleString('en-IN')}</small>
+          <p>{display(f.note)}</p>
+        </article>
+      ))}
+      {!((data.followups as Row[]) || []).length && (
+        <p className="admin-form-help">No follow-ups recorded.</p>
+      )}
+    </section>
+  );
+}
+export function ApplicationApproval({row, onDone}: {row: Row; onDone: () => void}) {
+  const [info, setInfo] = useState<Row | null>(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState('');
+  useEffect(() => {
+    fetch('/api/admin/application?id=' + row.id)
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok) throw Error(d.message);
+        setInfo(d);
+      })
+      .catch((e) => setError(e.message));
+  }, [row.id]);
+  async function approve() {
+    setBusy(true);
+    setError('');
+    try {
+      await send('approve', {submission_id: row.id, existing_member_id: (info?.existing_member as Row)?.id});
+      onDone();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="admin-inline-create">
+      <h3>Membership decision</h3>
+      {error && (
+        <p role="alert" className="admin-notice error">
+          {error}
+        </p>
+      )}
+      {!info ? (
+        <p>Checking member records…</p>
+      ) : info.approved_member_id ? (
+        <p>
+          This application has already been approved.{' '}
+          <Link href="/admin/members" className="admin-text-link">
+            View members
+          </Link>
+        </p>
+      ) : (
+        <>
+          {!!info.existing_member && (
+            <p>
+              A member with this email already exists: {display((info.existing_member as Row).name)}. Approval
+              links this application to that record without overwriting it.
+            </p>
+          )}
+          <p className="admin-form-help">
+            Approve only after reviewing the application. This creates or links a community member; it does
+            not grant a staff login.
+          </p>
+          <button
+            className="admin-button primary"
+            disabled={busy || row.status === 'archived'}
+            onClick={approve}
+          >
+            {busy
+              ? 'Approving…'
+              : info.existing_member
+                ? 'Approve and link existing member'
+                : 'Approve and create member'}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}

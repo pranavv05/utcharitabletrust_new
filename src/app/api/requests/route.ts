@@ -1,9 +1,74 @@
 import {NextResponse} from 'next/server';
 import {serverClient} from '@/lib/supabase/server';
-import {requestSchema,sameOrigin} from '@/lib/validation';
+import {requestSchema, sameOrigin} from '@/lib/validation';
 import {createHash} from 'node:crypto';
 import {clientIp} from '@/lib/client-ip';
 import {createLimiter} from '@/lib/rate-limit';
 import {verifyTurnstile} from '@/lib/turnstile';
-const limiter=createLimiter({limit:6,windowMs:10*60*1000});
-export async function POST(request:Request){if(!sameOrigin(request))return NextResponse.json({message:'This request is not allowed.'},{status:403});let body;try{body=await request.json()}catch{return NextResponse.json({message:'Invalid request.'},{status:400})}const result=requestSchema.safeParse(body);if(!result.success)return NextResponse.json({message:result.error.issues[0]?.message||'Please check your details.'},{status:400});if(result.data.website)return NextResponse.json({message:'Thank you. Your request has been received.'});const ip=clientIp(request.headers);const gate=limiter.hit(ip);if(!gate.allowed)return NextResponse.json({message:'Too many requests from this connection. Please try again in a few minutes.'},{status:429,headers:{'Retry-After':String(gate.retryAfter)}});if(!(await verifyTurnstile(result.data['cf-turnstile-response'],ip)))return NextResponse.json({message:'Please complete the security check and try again.'},{status:400});const db=await serverClient();if(!db)return NextResponse.json({message:'Online submissions are being set up. Please call +91 93779 58582 or email help@utcharitabletrust.com to reach our team.'},{status:503});const {website,'cf-turnstile-response':token,...data}=result.data;void website;void token;const ipHash=createHash('sha256').update((process.env.RATE_LIMIT_SALT||'ut-trust')+':'+ip).digest('hex');const {error}=await db.rpc('submit_request',{payload:{...data,ip_hash:ipHash}});if(error?.code==='22023')return NextResponse.json({message:'Please check your contact details and enquiry topic.'},{status:400});if(error)return NextResponse.json({message:error.code==='P0001'?'Please wait before sending another request with this email address.':'We couldn’t save your request. Please try again or contact us by phone.'},{status:error.code==='P0001'?429:500});return NextResponse.json({message:data.kind==='membership'?'Thank you. Your membership application has been received for review.':'Thank you. Your message has been sent to our team.'},{status:201});}
+const limiter = createLimiter({limit: 6, windowMs: 10 * 60 * 1000});
+export async function POST(request: Request) {
+  if (!sameOrigin(request))
+    return NextResponse.json({message: 'This request is not allowed.'}, {status: 403});
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({message: 'Invalid request.'}, {status: 400});
+  }
+  const result = requestSchema.safeParse(body);
+  if (!result.success)
+    return NextResponse.json(
+      {message: result.error.issues[0]?.message || 'Please check your details.'},
+      {status: 400},
+    );
+  if (result.data.website) return NextResponse.json({message: 'Thank you. Your request has been received.'});
+  const ip = clientIp(request.headers);
+  const gate = limiter.hit(ip);
+  if (!gate.allowed)
+    return NextResponse.json(
+      {message: 'Too many requests from this connection. Please try again in a few minutes.'},
+      {status: 429, headers: {'Retry-After': String(gate.retryAfter)}},
+    );
+  if (!(await verifyTurnstile(result.data['cf-turnstile-response'], ip)))
+    return NextResponse.json({message: 'Please complete the security check and try again.'}, {status: 400});
+  const db = await serverClient();
+  if (!db)
+    return NextResponse.json(
+      {
+        message:
+          'Online submissions are being set up. Please call +91 93779 58582 or email help@utcharitabletrust.com to reach our team.',
+      },
+      {status: 503},
+    );
+  const {website, 'cf-turnstile-response': token, ...data} = result.data;
+  void website;
+  void token;
+  const ipHash = createHash('sha256')
+    .update((process.env.RATE_LIMIT_SALT || 'ut-trust') + ':' + ip)
+    .digest('hex');
+  const {error} = await db.rpc('submit_request', {payload: {...data, ip_hash: ipHash}});
+  if (error?.code === '22023')
+    return NextResponse.json(
+      {message: 'Please check your contact details and enquiry topic.'},
+      {status: 400},
+    );
+  if (error)
+    return NextResponse.json(
+      {
+        message:
+          error.code === 'P0001'
+            ? 'Please wait before sending another request with this email address.'
+            : 'We couldn’t save your request. Please try again or contact us by phone.',
+      },
+      {status: error.code === 'P0001' ? 429 : 500},
+    );
+  return NextResponse.json(
+    {
+      message:
+        data.kind === 'membership'
+          ? 'Thank you. Your membership application has been received for review.'
+          : 'Thank you. Your message has been sent to our team.',
+    },
+    {status: 201},
+  );
+}

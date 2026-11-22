@@ -1,29 +1,132 @@
-import {photoCatalogue,photoDetails,photoCategory,type GalleryPhoto} from './photos';
+import {photoCatalogue, photoDetails, photoCategory, type GalleryPhoto} from './photos';
 export const programmes = [
- {slug:'book-bank', title:'A book can open a world.', name:'Book Bank', category:'Education', image:'/images/gallery/gallery4.webp', description:'Helping students continue their education through a community book bank. Donate a book, find the next one you need, and keep knowledge moving.', body:'Our book bank connects books with the students who need them. The trust collects donated books and lends available copies through its library. Contact our team to arrange a donation or ask about borrowing.', color:'blue'},
- {slug:'blood-donation-camp',title:'A small act. A lifeline.',name:'Blood Donation',category:'Health & wellbeing',image:'/images/blood/blood1.webp',description:'Bringing our community together to support patients through blood donation camps.',body:'Blood donation brings neighbours together for a shared purpose. Our camps encourage eligible donors to contribute and help support access to blood for patients. Please contact the trust for information about upcoming camps and donor eligibility.',color:'red'},
- {slug:'food-packet-distribution',title:'Care starts with a meal.',name:'Food Distribution',category:'Essential support',image:'/images/food/food1.webp',description:'Providing food packets to people and families who need support.',body:'Access to food is a basic need. Through food packet distribution, our volunteers support families and individuals facing difficult circumstances. Get in touch to volunteer or discuss contributing supplies.',color:'green'},
- {slug:'school-stationary-distribution',title:'Equipped to learn.',name:'School Essentials',category:'Education',image:'/images/stationary/stationary1.webp',description:'Helping children arrive at school with the everyday essentials for learning.',body:'School supplies can make a meaningful difference to a child’s learning experience. Our school stationery distribution activities provide practical learning materials to students who need support.',color:'yellow'},
- {slug:'mega-cloth-distribution',title:'Comfort, shared with care.',name:'Clothing Support',category:'Essential support',image:'/images/cloth/cloth3.webp',description:'Sharing useful clothing with people in need, with respect and dignity.',body:'Our clothing distribution activities bring together donations and volunteers to offer clothing to people who need it. Speak with our team about suitable donations and opportunities to help.',color:'green'},
- {slug:'blanket-distribution',title:'Warmth for the colder days.',name:'Blanket Distribution',category:'Essential support',image:'/images/blanket/blanket1.webp',description:'Offering warmth and practical support during colder weather.',body:'Blankets provide warmth and comfort when temperatures fall. Our volunteers distribute blankets to people facing difficult living conditions and help connect community contributions with local needs.',color:'yellow'},
- {slug:'medical-help',title:'Support when it matters.',name:'Medical Support',category:'Health & wellbeing',image:'/images/medical/medical1.webp',description:'Helping connect people with support during medical difficulties.',body:'The trust supports community members facing medical difficulties. Contact our team to discuss available assistance. For a medical emergency, seek emergency medical services directly.',color:'red'},
- {slug:'raining-season',title:'Ready for rainy days.',name:'Monsoon Support',category:'Essential support',image:'/images/rainy/rainy1.webp',description:'Distributing umbrellas and rain protection to people who need them.',body:'The monsoon brings additional challenges for people without adequate protection. Our rainy season programme distributes umbrellas and other practical support to help people stay dry.',color:'blue'},
- {slug:'fight-against-covid',title:'Standing together in crisis.',name:'COVID-19 Response',category:'Community response',image:'/images/covid/covid1.webp',description:'A look back at our community support during the COVID-19 pandemic.',body:'During the COVID-19 pandemic, the trust supported people facing uncertainty and hardship. These photographs document our community response and the volunteers who helped make it possible.',color:'green'}
+  {
+    slug: 'book-bank',
+    title: 'A book can open a world.',
+    name: 'Book Bank',
+    category: 'Education',
+    image: '/images/gallery/gallery4.webp',
+    description:
+      'Helping students continue their education through a community book bank. Donate a book, find the next one you need, and keep knowledge moving.',
+    body: 'Our book bank connects books with the students who need them. The trust collects donated books and lends available copies through its library. Contact our team to arrange a donation or ask about borrowing.',
+    color: 'blue',
+  },
+  {
+    slug: 'blood-donation-camp',
+    title: 'A small act. A lifeline.',
+    name: 'Blood Donation',
+    category: 'Health & wellbeing',
+    image: '/images/blood/blood1.webp',
+    description: 'Bringing our community together to support patients through blood donation camps.',
+    body: 'Blood donation brings neighbours together for a shared purpose. Our camps encourage eligible donors to contribute and help support access to blood for patients. Please contact the trust for information about upcoming camps and donor eligibility.',
+    color: 'red',
+  },
+  {
+    slug: 'food-packet-distribution',
+    title: 'Care starts with a meal.',
+    name: 'Food Distribution',
+    category: 'Essential support',
+    image: '/images/food/food1.webp',
+    description: 'Providing food packets to people and families who need support.',
+    body: 'Access to food is a basic need. Through food packet distribution, our volunteers support families and individuals facing difficult circumstances. Get in touch to volunteer or discuss contributing supplies.',
+    color: 'green',
+  },
+  {
+    slug: 'school-stationary-distribution',
+    title: 'Equipped to learn.',
+    name: 'School Essentials',
+    category: 'Education',
+    image: '/images/stationary/stationary1.webp',
+    description: 'Helping children arrive at school with the everyday essentials for learning.',
+    body: 'School supplies can make a meaningful difference to a child’s learning experience. Our school stationery distribution activities provide practical learning materials to students who need support.',
+    color: 'yellow',
+  },
+  {
+    slug: 'mega-cloth-distribution',
+    title: 'Comfort, shared with care.',
+    name: 'Clothing Support',
+    category: 'Essential support',
+    image: '/images/cloth/cloth3.webp',
+    description: 'Sharing useful clothing with people in need, with respect and dignity.',
+    body: 'Our clothing distribution activities bring together donations and volunteers to offer clothing to people who need it. Speak with our team about suitable donations and opportunities to help.',
+    color: 'green',
+  },
+  {
+    slug: 'blanket-distribution',
+    title: 'Warmth for the colder days.',
+    name: 'Blanket Distribution',
+    category: 'Essential support',
+    image: '/images/blanket/blanket1.webp',
+    description: 'Offering warmth and practical support during colder weather.',
+    body: 'Blankets provide warmth and comfort when temperatures fall. Our volunteers distribute blankets to people facing difficult living conditions and help connect community contributions with local needs.',
+    color: 'yellow',
+  },
+  {
+    slug: 'medical-help',
+    title: 'Support when it matters.',
+    name: 'Medical Support',
+    category: 'Health & wellbeing',
+    image: '/images/medical/medical1.webp',
+    description: 'Helping connect people with support during medical difficulties.',
+    body: 'The trust supports community members facing medical difficulties. Contact our team to discuss available assistance. For a medical emergency, seek emergency medical services directly.',
+    color: 'red',
+  },
+  {
+    slug: 'raining-season',
+    title: 'Ready for rainy days.',
+    name: 'Monsoon Support',
+    category: 'Essential support',
+    image: '/images/rainy/rainy1.webp',
+    description: 'Distributing umbrellas and rain protection to people who need them.',
+    body: 'The monsoon brings additional challenges for people without adequate protection. Our rainy season programme distributes umbrellas and other practical support to help people stay dry.',
+    color: 'blue',
+  },
+  {
+    slug: 'fight-against-covid',
+    title: 'Standing together in crisis.',
+    name: 'COVID-19 Response',
+    category: 'Community response',
+    image: '/images/covid/covid1.webp',
+    description: 'A look back at our community support during the COVID-19 pandemic.',
+    body: 'During the COVID-19 pandemic, the trust supported people facing uncertainty and hardship. These photographs document our community response and the volunteers who helped make it possible.',
+    color: 'green',
+  },
 ];
 const originalGallery = [
- {src:'/images/banner.webp',category:'Community',caption:'Coming together for our community'},
- {src:'/images/blood/blood1.webp',category:'Health',caption:'Community blood donation camp'},
- {src:'/images/food/food1.webp',category:'Support',caption:'Sharing food and essential support'},
- {src:'/images/gallery/gallery4.webp',category:'Education',caption:'A community built around learning'},
- {src:'/images/blanket/blanket1.webp',category:'Support',caption:'Blanket distribution activity'},
- {src:'/images/cloth/cloth3.webp',category:'Support',caption:'Clothing support in the community'},
- {src:'/images/gallery/gallery22.webp',category:'Community',caption:'Volunteers working together'},
- {src:'/images/gallery/gallery36.webp',category:'Community',caption:'Planning the work ahead'},
- {src:'/images/gallery/gallery10.webp',category:'Education',caption:'Celebrating education and participation'},
- {src:'/images/gallery/gallery20.webp',category:'Community',caption:'People at the heart of our work'},
- {src:'/images/gallery/gallery29.webp',category:'Health',caption:'Making time to give blood'},
- {src:'/images/gallery/gallery23.webp',category:'Community',caption:'Sharing a moment with our community'}
+  {src: '/images/banner.webp', category: 'Community', caption: 'Coming together for our community'},
+  {src: '/images/blood/blood1.webp', category: 'Health', caption: 'Community blood donation camp'},
+  {src: '/images/food/food1.webp', category: 'Support', caption: 'Sharing food and essential support'},
+  {src: '/images/gallery/gallery4.webp', category: 'Education', caption: 'A community built around learning'},
+  {src: '/images/blanket/blanket1.webp', category: 'Support', caption: 'Blanket distribution activity'},
+  {src: '/images/cloth/cloth3.webp', category: 'Support', caption: 'Clothing support in the community'},
+  {src: '/images/gallery/gallery22.webp', category: 'Community', caption: 'Volunteers working together'},
+  {src: '/images/gallery/gallery36.webp', category: 'Community', caption: 'Planning the work ahead'},
+  {
+    src: '/images/gallery/gallery10.webp',
+    category: 'Education',
+    caption: 'Celebrating education and participation',
+  },
+  {src: '/images/gallery/gallery20.webp', category: 'Community', caption: 'People at the heart of our work'},
+  {src: '/images/gallery/gallery29.webp', category: 'Health', caption: 'Making time to give blood'},
+  {
+    src: '/images/gallery/gallery23.webp',
+    category: 'Community',
+    caption: 'Sharing a moment with our community',
+  },
 ];
-export const gallery:GalleryPhoto[]=[...originalGallery.map(p=>({...p,category:photoCategory(p.category),...photoDetails(p.src,p.category)})),...photoCatalogue.filter(p=>!originalGallery.some(g=>g.src===p.src))];
-export const contact = {phone:'+91 93779 58582',phoneHref:'+919377958582',email:'help@utcharitabletrust.com',address:'Shop No. 05, V-Raj Darshan, Samarwani, Silvassa, Dadra and Nagar Haveli – 396230'};
-export const isConfigured = () => Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+export const gallery: GalleryPhoto[] = [
+  ...originalGallery.map((p) => ({
+    ...p,
+    category: photoCategory(p.category),
+    ...photoDetails(p.src, p.category),
+  })),
+  ...photoCatalogue.filter((p) => !originalGallery.some((g) => g.src === p.src)),
+];
+export const contact = {
+  phone: '+91 93779 58582',
+  phoneHref: '+919377958582',
+  email: 'help@utcharitabletrust.com',
+  address: 'Shop No. 05, V-Raj Darshan, Samarwani, Silvassa, Dadra and Nagar Haveli – 396230',
+};
+export const isConfigured = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);

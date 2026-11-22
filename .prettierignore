@@ -1,0 +1,9 @@
+.next/
+.next-*/
+node_modules/
+public/
+package-lock.json
+supabase/
+src/lib/*.json
+next-env.d.ts
+*.md

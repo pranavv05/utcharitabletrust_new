@@ -1,5 +1,48 @@
 import {PageIntro} from '@/components/shared';
 import {RequestForm} from '@/components/request-form';
-import {BookOpen,HandHeart,Heart} from 'lucide-react';
-export const metadata={title:'Get involved'};
-export default function JoinPage(){return <><PageIntro eyebrow="Get involved" title="Your time. Your care. A real difference." description="You don’t need to do something extraordinary to make a difference. Sometimes, showing up is where it begins."/><section className="page-content"><div className="container form-layout"><div className="contact-details"><h2>A place for everyone<br/><em>who wants to help.</em></h2><p>Become a member of UT Charitable Trust and help support our work in the community.</p>{[[HandHeart,'Give your time','Help with local activities, distribution drives, and community events.'],[BookOpen,'Share what you have','Donate useful books or connect our team with resources.'],[Heart,'Bring your skills','Offer your experience, ideas, or practical support.']].map(([Icon,title,desc])=>{const I=Icon as typeof Heart;return <div className="contact-item" key={String(title)}><I size={23}/><div><strong>{String(title)}</strong><p>{String(desc)}</p></div></div>})}</div><RequestForm kind="membership"/></div></section></>}
+import {BookOpen, HandHeart, Heart} from 'lucide-react';
+export const metadata = {title: 'Get involved'};
+export default function JoinPage() {
+  return (
+    <>
+      <PageIntro
+        eyebrow="Get involved"
+        title="Your time. Your care. A real difference."
+        description="You don’t need to do something extraordinary to make a difference. Sometimes, showing up is where it begins."
+      />
+      <section className="page-content">
+        <div className="container form-layout">
+          <div className="contact-details">
+            <h2>
+              A place for everyone
+              <br />
+              <em>who wants to help.</em>
+            </h2>
+            <p>Become a member of UT Charitable Trust and help support our work in the community.</p>
+            {[
+              [
+                HandHeart,
+                'Give your time',
+                'Help with local activities, distribution drives, and community events.',
+              ],
+              [BookOpen, 'Share what you have', 'Donate useful books or connect our team with resources.'],
+              [Heart, 'Bring your skills', 'Offer your experience, ideas, or practical support.'],
+            ].map(([Icon, title, desc]) => {
+              const I = Icon as typeof Heart;
+              return (
+                <div className="contact-item" key={String(title)}>
+                  <I size={23} />
+                  <div>
+                    <strong>{String(title)}</strong>
+                    <p>{String(desc)}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <RequestForm kind="membership" />
+        </div>
+      </section>
+    </>
+  );
+}

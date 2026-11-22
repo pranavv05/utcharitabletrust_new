@@ -1,7 +1,52 @@
 import {getSiteContent} from '@/lib/site-content';
 import Link from 'next/link';
-import {BookOpen,Info} from 'lucide-react';
-import {PageIntro,JoinBanner} from '@/components/shared';
+import {BookOpen, Info} from 'lucide-react';
+import {PageIntro, JoinBanner} from '@/components/shared';
 import {Catalogue} from '@/components/catalogue';
-export const metadata={title:'Community book bank'};
-export default async function BookBank(){const {programmes}=await getSiteContent();const programme=programmes.find(p=>p.slug==='book-bank');return <><PageIntro eyebrow="The community book bank" title={programme?.title||'Good books deserve another chapter.'} description={programme?.description||'Find a book for your next step in learning. Browse our available collection, or help it grow by donating books you no longer need.'}/><section className="page-content"><div className="container"><div className="section-heading"><div><h2>Find your next book.</h2><p style={{marginTop:14}}>Search the collection, then contact our team to arrange borrowing.</p></div><Link className="button button-outline" href="/contact?subject=Book%20donation"><BookOpen size={17}/> Donate books</Link></div>{programme?.body&&<details className="bookbank-context"><summary>About our book bank</summary><p>{programme.body}</p></details>}<Catalogue/><div className="notice" style={{marginTop:30,marginBottom:0}}><Info size={18}/><span>Borrowing and returns are managed by our library team. Availability may change. Please confirm with us before visiting.</span></div></div></section><JoinBanner/></>}
+export const metadata = {title: 'Community book bank'};
+export default async function BookBank() {
+  const {programmes} = await getSiteContent();
+  const programme = programmes.find((p) => p.slug === 'book-bank');
+  return (
+    <>
+      <PageIntro
+        eyebrow="The community book bank"
+        title={programme?.title || 'Good books deserve another chapter.'}
+        description={
+          programme?.description ||
+          'Find a book for your next step in learning. Browse our available collection, or help it grow by donating books you no longer need.'
+        }
+      />
+      <section className="page-content">
+        <div className="container">
+          <div className="section-heading">
+            <div>
+              <h2>Find your next book.</h2>
+              <p style={{marginTop: 14}}>
+                Search the collection, then contact our team to arrange borrowing.
+              </p>
+            </div>
+            <Link className="button button-outline" href="/contact?subject=Book%20donation">
+              <BookOpen size={17} /> Donate books
+            </Link>
+          </div>
+          {programme?.body && (
+            <details className="bookbank-context">
+              <summary>About our book bank</summary>
+              <p>{programme.body}</p>
+            </details>
+          )}
+          <Catalogue />
+          <div className="notice" style={{marginTop: 30, marginBottom: 0}}>
+            <Info size={18} />
+            <span>
+              Borrowing and returns are managed by our library team. Availability may change. Please confirm
+              with us before visiting.
+            </span>
+          </div>
+        </div>
+      </section>
+      <JoinBanner />
+    </>
+  );
+}

@@ -10,7 +10,12 @@ export type Limiter = {
  * Fixed-window in-memory limiter. It is per server instance: on serverless or multi-instance
  * deployments it only slows abuse down, so pair it with database or edge limits.
  */
-export function createLimiter(options: {limit: number; windowMs: number; maxKeys?: number; now?: () => number}): Limiter {
+export function createLimiter(options: {
+  limit: number;
+  windowMs: number;
+  maxKeys?: number;
+  now?: () => number;
+}): Limiter {
   const entries = new Map<string, {count: number; until: number}>();
   const now = options.now ?? Date.now;
   const maxKeys = options.maxKeys ?? 5000;
@@ -33,7 +38,10 @@ export function createLimiter(options: {limit: number; windowMs: number; maxKeys
         return {allowed: true, retryAfter: 0};
       }
       entry.count += 1;
-      return {allowed: entry.count <= options.limit, retryAfter: Math.max(1, Math.ceil((entry.until - time) / 1000))};
+      return {
+        allowed: entry.count <= options.limit,
+        retryAfter: Math.max(1, Math.ceil((entry.until - time) / 1000)),
+      };
     },
     blocked(key) {
       const time = now();
