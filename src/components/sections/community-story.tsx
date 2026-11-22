@@ -1,4 +1,5 @@
 'use client';
+import {FitPhoto} from '@/components/ui/fit-photo';
 import Image from 'next/image';
 import { useRef } from 'react';
 import { gsap, useGSAP } from '@/lib/motion';
@@ -22,5 +23,5 @@ export function CommunityStory() {
     });
     return()=>mm.revert();
   },{scope});
-  return <section ref={scope} className="chapter context-chapter" id="community" aria-labelledby="community-title"><div className="experience-container context-heading"><span className="chapter-tag">THE COMMUNITY</span><h2 id="community-title">Real needs.<br/><em>Human responses.</em></h2></div><div className="context-scenes">{scenes.map((scene) => <article className="context-scene" key={scene.label}><div className="context-photo"><Image src={scene.image} alt={scene.label.toLowerCase()+' activity by UT Charitable Trust'} fill sizes="(max-width: 899px) 100vw, 52vw"/></div><div className="context-copy"><p className="overline">{scene.label}</p><h3>{scene.title}</h3><p>{scene.text}</p><span className="context-rule"/></div></article>)}</div></section>;
+  return <section ref={scope} className="chapter context-chapter" id="community" aria-labelledby="community-title"><div className="experience-container context-heading"><span className="chapter-tag">THE COMMUNITY</span><h2 id="community-title">Real needs.<br/><em>Human responses.</em></h2></div><div className="context-scenes">{scenes.map((scene) => <article className="context-scene" key={scene.label}><div className="context-photo"><FitPhoto src={scene.image} alt={scene.label.toLowerCase()+' activity by UT Charitable Trust'} sizes="(max-width: 899px) 100vw, 52vw"/></div><div className="context-copy"><p className="overline">{scene.label}</p><h3>{scene.title}</h3><p>{scene.text}</p><span className="context-rule"/></div></article>)}</div></section>;
 }
