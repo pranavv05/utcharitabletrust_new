@@ -10,10 +10,25 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import {display, type Row} from '@/lib/admin/config';
+import {daysOverdue} from '@/lib/admin/dates';
 export function Badge({status}: {status: unknown}) {
   return <span className={'admin-badge status-' + String(status)}>{display(status)}</span>;
 }
-export function Dashboard({data, name, canWrite}: {data: Row; name: string; canWrite: boolean}) {
+export function Dashboard({
+  data,
+  name,
+  canWrite,
+  overdue = [],
+  inbox = [],
+  month = {loans: null, donations: null},
+}: {
+  data: Row;
+  name: string;
+  canWrite: boolean;
+  overdue?: Row[];
+  inbox?: Row[];
+  month?: {loans: number | null; donations: number | null};
+}) {
   const n = (key: string) => Number(data[key] || 0);
   const number = (key: string) => n(key).toLocaleString('en-IN');
   const recent = (data.recent || []) as Row[];
@@ -77,6 +92,15 @@ export function Dashboard({data, name, canWrite}: {data: Row; name: string; canW
           </div>
         ))}
       </div>
+      <p className="admin-month-strip" aria-label="This month">
+        <span>This month</span>
+        <Link href="/admin/reports">
+          <b>{month.loans === null ? '—' : month.loans.toLocaleString('en-IN')}</b> loans issued
+        </Link>
+        <Link href="/admin/reports">
+          <b>{month.donations === null ? '—' : month.donations.toLocaleString('en-IN')}</b> donations received
+        </Link>
+      </p>
       <div className="admin-overview-grid">
         <section className="admin-card admin-action-card">
           <div className="admin-action-symbol">
@@ -203,12 +227,42 @@ export function Dashboard({data, name, canWrite}: {data: Row; name: string; canW
               </span>
               <span>Open inbox</span>
             </Link>
+            {inbox.map((m) => (
+              <Link className="admin-attention-row" key={String(m.id)} href="/admin/submissions?filter=new">
+                <span>
+                  <b>{display(m.name)}</b>
+                  <small>{m.kind === 'membership' ? 'Membership application' : display(m.subject)}</small>
+                </span>
+                <small>
+                  {m.created_at ? new Date(String(m.created_at)).toLocaleDateString('en-IN') : ''}
+                </small>
+              </Link>
+            ))}
             <Link className="admin-priority-link" href="/admin/loans?filter=overdue">
               <span>
                 <b>{number('overdue')}</b> overdue loans
               </span>
               <span>Review loans</span>
             </Link>
+            {overdue.map((loan) => {
+              const days = daysOverdue(loan.endDate);
+              return (
+                <div className="admin-attention-row" key={String(loan.id)}>
+                  <Link href={'/admin/loans?id=' + loan.id}>
+                    <b>{display(loan.name)}</b>
+                    <small>
+                      {String(loan.orderNo)} ·{' '}
+                      {days ? `${days} day${days === 1 ? '' : 's'} overdue` : 'overdue'}
+                    </small>
+                  </Link>
+                  {typeof loan.phone === 'string' && loan.phone && (
+                    <a className="admin-call-link" href={'tel:' + loan.phone.replace(/[^+\d]/g, '')}>
+                      Call
+                    </a>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="admin-card">
             <div className="admin-card-heading">
