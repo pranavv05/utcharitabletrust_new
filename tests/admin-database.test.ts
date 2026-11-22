@@ -9,7 +9,7 @@ test('staff permissions and book lifecycle retain original issue history',async(
  try{
  await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role BYPASSRLS;CREATE SCHEMA auth;CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;GRANT USAGE ON SCHEMA auth TO authenticated;`);
  await db.exec(baseline);await db.exec(migration);await db.exec(readFileSync(new URL('../supabase/migrations/20261121030000_admin_sorting.sql',import.meta.url),'utf8'));
- for(const name of ['20261122000000_admin_workflows.sql','20261122010000_website_content.sql','20261122020000_content_seed.sql','20261122030000_transaction_classification.sql','20261122040000_staff_refresh.sql','20261122050000_exact_copy_search.sql','20261122060000_public_photo_archive.sql','20261122070000_contact_topics.sql','20261122080000_admin_business_timezone.sql','20261122090000_historical_return_reports.sql'])await db.exec(readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
+ for(const name of ['20261122000000_admin_workflows.sql','20261122010000_website_content.sql','20261122020000_content_seed.sql','20261122030000_transaction_classification.sql','20261122040000_staff_refresh.sql','20261122050000_exact_copy_search.sql','20261122060000_public_photo_archive.sql','20261122070000_contact_topics.sql','20261122080000_admin_business_timezone.sql','20261122090000_historical_return_reports.sql','20261122100000_submission_abuse_limits.sql'])await db.exec(readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
  const publicPhotos=(await db.query<{data:{image:string;description:string;link:string}}>("SELECT data FROM trust_admin.site_content WHERE kind='gallery' AND slug LIKE 'photo-%'")).rows;
  assert.equal(publicPhotos.length,147);assert.ok(publicPhotos.every(p=>p.data.image.startsWith('/images/')&&p.data.description.length>60&&p.data.link.startsWith('/')));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261122060000_public_photo_archive.sql',import.meta.url),'utf8'));
@@ -143,5 +143,8 @@ test('staff permissions and book lifecycle retain original issue history',async(
  await db.exec('SET ROLE anon');assert.equal((await db.query<{count:number}>('SELECT count(*)::int AS count FROM public.trust_changes')).rows[0].count,2);assert.ok(await rpc('website_content',[]));await assert.rejects(()=>rpc('admin_overview',[]),/permission denied/);await db.exec('RESET ROLE');
  const payload={kind:'contact',name:'Test Visitor',email:'visitor@example.test',phone:'9876543212',subject:'Volunteer',message:'Please send volunteering information.'};
  await rpc('submit_request',[payload]);await assert.rejects(()=>rpc('submit_request',[payload]),/Please wait/);
+ for(let i=0;i<5;i++)await rpc('submit_request',[{...payload,email:`ip-limit-${i}@example.test`,ip_hash:'test-hash'}]);
+ await assert.rejects(()=>rpc('submit_request',[{...payload,email:'ip-limit-6@example.test',ip_hash:'test-hash'}]),/Too many requests/);
+ await rpc('submit_request',[{...payload,email:'other-ip@example.test',ip_hash:'other-hash'}]);
  }finally{await db.close()}
 });

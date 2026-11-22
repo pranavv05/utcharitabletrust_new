@@ -60,6 +60,13 @@ npm run build
 
 Browser checks cover the public light theme, admin themes, responsive pages, gallery controls and staff workflows. Follow-up notes do not send email or SMS; notification delivery is not configured. Business-record backups do not replace full Supabase Auth/Storage disaster recovery.
 
+## Form and login abuse protection
+
+- Contact and membership forms are limited to 6 requests per 10 minutes per visitor address in the app, and 5 submissions per hour per hashed address in the database (`20261122100000_submission_abuse_limits.sql`, apply it after review).
+- Optional Cloudflare Turnstile: set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`. Without the secret, the check is skipped.
+- Staff sign-in and password-change attempts are throttled per account and address. All in-app limiters are per server instance; keep Supabase Auth rate limits and edge/WAF limits enabled too.
+- `submit_request` is callable with the public Supabase key, so a caller that skips the website can omit the address hash. The global 500/day cap still applies; closing this fully needs a server-held secret or an Edge Function in front of the RPC.
+
 ## Website assistant
 
 The floating assistant uses the trust’s published content. A local guide works without an AI key. To enable Groq-backed replies, set `GROQ_API_KEY` in `.env.local` or the server deployment environment and restart the server. `GROQ_MODEL` defaults to `openai/gpt-oss-20b`. Never put the secret in a `NEXT_PUBLIC_` variable or commit it.
