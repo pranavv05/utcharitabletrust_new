@@ -5,12 +5,14 @@ import {useState, useEffect, useRef} from 'react';
 import {X, ChevronLeft, ChevronRight} from 'lucide-react';
 import {useSiteContent} from './site-content-provider';
 import {gsap, useGSAP} from '@/lib/motion';
+const PAGE_SIZE = 24;
 export function Gallery() {
   const {gallery} = useSiteContent();
   const [category, setCategory] = useState('All photos');
   const [sort, setSort] = useState('featured');
   const [selected, setSelected] = useState<string | null>(null);
   const [loadedPhoto, setLoadedPhoto] = useState('');
+  const [visible, setVisible] = useState(PAGE_SIZE);
   const scope = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -76,6 +78,7 @@ export function Gallery() {
               onClick={() => {
                 setCategory(c);
                 setSelected(null);
+                setVisible(PAGE_SIZE);
               }}
               aria-pressed={category === c}
               className={`filter-tab ${category === c ? 'active' : ''}`}
@@ -86,7 +89,13 @@ export function Gallery() {
         </div>
         <label className="gallery-sort">
           Sort by
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setVisible(PAGE_SIZE);
+            }}
+          >
             <option value="featured">Featured order</option>
             <option value="title">Title: A–Z</option>
             <option value="title-desc">Title: Z–A</option>
@@ -95,7 +104,7 @@ export function Gallery() {
         </label>
       </div>
       <div className="gallery-grid photo-only-gallery">
-        {filtered.map((g, i) => (
+        {filtered.slice(0, visible).map((g, i) => (
           <button
             className="gallery-card"
             key={g.src + i}
@@ -113,6 +122,16 @@ export function Gallery() {
           </button>
         ))}
       </div>
+      {filtered.length > visible && (
+        <div className="gallery-more">
+          <p role="status">
+            Showing {Math.min(visible, filtered.length)} of {filtered.length} photographs
+          </p>
+          <button type="button" className="button" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+            Show more photographs
+          </button>
+        </div>
+      )}
       {!filtered.length && <p className="gallery-empty">No photographs in this subject yet.</p>}
       {current && (
         <dialog
