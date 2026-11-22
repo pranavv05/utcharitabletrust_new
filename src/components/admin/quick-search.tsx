@@ -6,7 +6,7 @@ import {quickResults, searchable, type QuickResult} from '@/lib/admin/quick-sear
 
 const sources = ['books', 'people', 'loans'] as const;
 
-/** Find a book, person or loan from anywhere. Opens with Ctrl/Cmd+K or "/". */
+/** Find a book, person or issued book from anywhere. Opens with Ctrl/Cmd+K or "/". */
 export function QuickSearch() {
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -73,14 +73,14 @@ export function QuickSearch() {
     };
   }, [query]);
 
-  const groups = ['Books', 'People', 'Loans'] as const;
+  const groups = ['Books', 'People', 'Issued books'] as const;
   return (
     <>
       <button
         type="button"
         className="admin-search-trigger"
         onClick={open}
-        aria-label="Search books, people and loans"
+        aria-label="Search books, people and issued books"
       >
         <Search size={16} />
         <span>Search</span>
@@ -109,7 +109,7 @@ export function QuickSearch() {
                 window.location.assign(results[0].href);
               }
             }}
-            placeholder="Search a book, UTBN, person, phone or loan reference"
+            placeholder="Search a book, UTBN, person, phone or issue reference"
             aria-label="Search"
             autoComplete="off"
             maxLength={150}

@@ -778,7 +778,7 @@ export function Workspace({
                   <Plus size={17} /> Add donation
                 </button>
               ) : section === 'returns' ? (
-                <span className="admin-form-help">Open a loan below to record a return.</span>
+                <span className="admin-form-help">Open an issued book record below to record a return.</span>
               ) : (
                 <>
                   <Link className="admin-button secondary" href="/admin/returns">
@@ -1060,7 +1060,7 @@ export function Workspace({
           subtitle="The record remains in the database and is marked inactive."
           onClose={close}
         >
-          <p>Outstanding loans must be resolved before archiving people or issued copies.</p>
+          <p>Books not yet returned must be resolved before archiving people or issued copies.</p>
           <ErrorMessage message={error} />
           <div className="admin-form-footer">
             <button className="admin-button secondary" onClick={close}>

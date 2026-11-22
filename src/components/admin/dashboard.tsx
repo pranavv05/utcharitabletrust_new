@@ -57,7 +57,7 @@ export function Dashboard({
     },
     {
       key: 'overdue',
-      label: 'Overdue loans',
+      label: 'Overdue books',
       caption: 'Outstanding beyond due date',
       Icon: Clock3,
       color: 'coral',
@@ -95,7 +95,7 @@ export function Dashboard({
       <p className="admin-month-strip" aria-label="This month">
         <span>This month</span>
         <Link href="/admin/reports">
-          <b>{month.loans === null ? '—' : month.loans.toLocaleString('en-IN')}</b> loans issued
+          <b>{month.loans === null ? '—' : month.loans.toLocaleString('en-IN')}</b> books issued
         </Link>
         <Link href="/admin/reports">
           <b>{month.donations === null ? '—' : month.donations.toLocaleString('en-IN')}</b> donations received
@@ -181,7 +181,7 @@ export function Dashboard({
           <div className="admin-card-heading">
             <div>
               <h2>Recent transactions</h2>
-              <p>Donations, loans and returns</p>
+              <p>Donations, issues and returns</p>
             </div>
             <Link href="/admin/loans">View all</Link>
           </div>
@@ -240,23 +240,23 @@ export function Dashboard({
             ))}
             <Link className="admin-priority-link" href="/admin/loans?filter=overdue">
               <span>
-                <b>{number('overdue')}</b> overdue loans
+                <b>{number('overdue')}</b> overdue books
               </span>
-              <span>Review loans</span>
+              <span>Review overdue books</span>
             </Link>
-            {overdue.map((loan) => {
-              const days = daysOverdue(loan.endDate);
+            {overdue.map((issue) => {
+              const days = daysOverdue(issue.endDate);
               return (
-                <div className="admin-attention-row" key={String(loan.id)}>
-                  <Link href={'/admin/loans?id=' + loan.id}>
-                    <b>{display(loan.name)}</b>
+                <div className="admin-attention-row" key={String(issue.id)}>
+                  <Link href={'/admin/loans?id=' + issue.id}>
+                    <b>{display(issue.name)}</b>
                     <small>
-                      {String(loan.orderNo)} ·{' '}
+                      {String(issue.orderNo)} ·{' '}
                       {days ? `${days} day${days === 1 ? '' : 's'} overdue` : 'overdue'}
                     </small>
                   </Link>
-                  {typeof loan.phone === 'string' && loan.phone && (
-                    <a className="admin-call-link" href={'tel:' + loan.phone.replace(/[^+\d]/g, '')}>
+                  {typeof issue.phone === 'string' && issue.phone && (
+                    <a className="admin-call-link" href={'tel:' + issue.phone.replace(/[^+\d]/g, '')}>
                       Call
                     </a>
                   )}

@@ -35,7 +35,7 @@ export function PersonProfile({id}: {id: string}) {
       <dl className="admin-detail-list">
         {['name', 'email', 'phone', 'address', 'type', 'outstanding'].map((k) => (
           <div key={k}>
-            <dt>{k === 'outstanding' ? 'Outstanding loans' : k}</dt>
+            <dt>{k === 'outstanding' ? 'Books not yet returned' : k}</dt>
             <dd>{display(data[k])}</dd>
           </div>
         ))}
@@ -121,7 +121,7 @@ export function LoanTools({
       {canWrite && open && (
         <div className="admin-settings-grid">
           <form className="admin-form" onSubmit={(e) => submit(e, 'renew')}>
-            <h3>Renew this loan</h3>
+            <h3>Renew this issue</h3>
             <label>
               New due date
               <input type="date" name="due_date" required min={renewalMin(data.endDate)} />

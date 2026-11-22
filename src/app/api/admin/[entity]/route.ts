@@ -4,6 +4,7 @@ import {NextResponse} from 'next/server';
 import {staffContext} from '@/lib/supabase/server';
 import {sameOrigin, parsePage, staffAccessSchema} from '@/lib/validation';
 import {sections} from '@/lib/admin/config';
+import {plainTerms} from '@/lib/admin/terms';
 export async function GET(request: Request, {params}: {params: Promise<{entity: string}>}) {
   const ctx = await staffContext();
   if (!ctx) return NextResponse.json({message: 'Staff access required.'}, {status: 401});
@@ -107,7 +108,7 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
       code === '23505'
         ? 'A record with those details already exists.'
         : code === 'P0001'
-          ? result.error.message
+          ? plainTerms(result.error.message)
           : code === '22007' || code === '22P02'
             ? 'Check the selected values and dates.'
             : 'Unable to save. Check your details and try again.';

@@ -38,7 +38,7 @@ export const navGroups: NavGroup[] = [
   {
     label: 'DAILY WORK',
     items: [
-      {href: '/admin/loans', label: 'Loans', Icon: ArrowLeftRight},
+      {href: '/admin/loans', label: 'Issued books', Icon: ArrowLeftRight},
       {href: '/admin/returns', label: 'Return books', Icon: Undo2},
       {href: '/admin/donations', label: 'Donations', Icon: Gift},
       {href: '/admin/submissions', label: 'Inbox', Icon: Inbox},

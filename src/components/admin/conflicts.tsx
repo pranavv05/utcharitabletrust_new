@@ -46,13 +46,13 @@ export function ConflictReview() {
         <div>
           <p className="admin-eyebrow">ADMINISTRATOR REVIEW</p>
           <h1>Historical record review</h1>
-          <p>Resolve a copy recorded as outstanding on more than one loan.</p>
+          <p>Resolve a copy recorded as outstanding on more than one issue record.</p>
         </div>
       </div>
       <p className="admin-notice">
         Verify the correct borrower with your physical records before making a correction. The original issue
         items stay intact. Other claims are marked as historical corrections, not physical returns; the copy
-        remains issued to the chosen loan.
+        remains issued to the chosen record.
       </p>
       {error && (
         <p role="alert" className="admin-notice error">
@@ -62,7 +62,7 @@ export function ConflictReview() {
       {loading ? (
         <p>Checking records…</p>
       ) : !rows.length ? (
-        <section className="admin-card">No overlapping outstanding loans found.</section>
+        <section className="admin-card">No overlapping outstanding issue records found.</section>
       ) : (
         <>
           {rows.length === 200 && <p>Showing the first 200 conflicts; resolve and reload to continue.</p>}
@@ -73,7 +73,7 @@ export function ConflictReview() {
               </h2>
               <form className="admin-form" onSubmit={(e) => correct(e, String(row.id))}>
                 <label>
-                  Keep this verified loan
+                  Keep this verified issue record
                   <select name="kept_loan" required defaultValue="">
                     <option value="" disabled>
                       Choose after checking your records
@@ -90,8 +90,8 @@ export function ConflictReview() {
                   <textarea required minLength={10} maxLength={2000} name="reason" />
                 </label>
                 <label className="admin-checkbox-label">
-                  <input type="checkbox" required />I checked the source records and confirmed which loan is
-                  correct.
+                  <input type="checkbox" required />I checked the source records and confirmed which issue
+                  record is correct.
                 </label>
                 <button disabled={busy} className="admin-button danger">
                   Save verified correction

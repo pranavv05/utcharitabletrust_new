@@ -97,7 +97,7 @@ export function Reports({canExport}: {canExport: boolean}) {
               <option value="loans">Books issued</option>
               <option value="donations">Donations received</option>
               <option value="returns">Returns and losses</option>
-              <option value="overdue">Currently overdue loans</option>
+              <option value="overdue">Currently overdue books</option>
             </select>
           </label>
           <label>
@@ -113,8 +113,8 @@ export function Reports({canExport}: {canExport: boolean}) {
           </button>
         </form>
         <p className="admin-form-help">
-          Up to 366 days per report. Loan and donation reports use the issue/donation date; returns use the
-          recorded return date and label imported history separately. Overdue shows loans still outstanding
+          Up to 366 days per report. Issue and donation reports use the issue/donation date; returns use the
+          recorded return date and label imported history separately. Overdue shows books still outstanding
           today.
         </p>
         {error && (
@@ -136,8 +136,8 @@ export function Reports({canExport}: {canExport: boolean}) {
             {!!report.undated_historical_returns && (
               <p className="admin-notice">
                 {report.undated_historical_returns} historical returned{' '}
-                {report.undated_historical_returns === 1 ? 'loan has' : 'loans have'} no recorded return date.
-                These remain in transaction history and cannot be placed in a date-range report.
+                {report.undated_historical_returns === 1 ? 'record has' : 'records have'} no recorded return
+                date. These remain in transaction history and cannot be placed in a date-range report.
               </p>
             )}
             {report.limited && (

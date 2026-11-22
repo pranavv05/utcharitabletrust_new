@@ -10,8 +10,8 @@ test('every navigation entry is unique and every section has its own icon', () =
 
 test('active item resolves exact and nested paths, and hides admin-only pages from other roles', () => {
   assert.equal(activeNavItem('/admin', 'operator')?.label, 'Overview');
-  assert.equal(activeNavItem('/admin/loans', 'operator')?.label, 'Loans');
-  assert.equal(activeNavItem('/admin/loans/abc', 'operator')?.label, 'Loans');
+  assert.equal(activeNavItem('/admin/loans', 'operator')?.label, 'Issued books');
+  assert.equal(activeNavItem('/admin/loans/abc', 'operator')?.label, 'Issued books');
   assert.equal(activeNavItem('/admin/content', 'admin')?.label, 'Website content');
   assert.equal(activeNavItem('/admin/content', 'operator'), undefined);
 });
