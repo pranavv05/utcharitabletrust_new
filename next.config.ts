@@ -30,11 +30,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     qualities: [75, 85],
-    remotePatterns: process.env.NEXT_PUBLIC_SUPABASE_URL
+    remotePatterns: supabase
       ? [
           {
-            protocol: 'https',
-            hostname: new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname,
+            // https for a hosted project; http only for a local test backend such as localhost.
+            protocol: supabase.protocol === 'http:' ? 'http' : 'https',
+            hostname: supabase.hostname,
+            ...(supabase.port ? {port: supabase.port} : {}),
             pathname: '/storage/v1/object/public/trust-media/**',
           },
         ]
