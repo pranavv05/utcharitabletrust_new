@@ -2,6 +2,8 @@
 import {trustDate} from '@/lib/admin/dates';
 import {useEffect, useState, useRef} from 'react';
 import {display, type Row} from '@/lib/admin/config';
+import {columnLabel, reportPresets, summarizeReport} from '@/lib/admin/report-summary';
+import {PrintButton} from '@/components/admin/print-button';
 export function Reports({canExport}: {canExport: boolean}) {
   const today = trustDate();
   const [kind, setKind] = useState('loans'),
@@ -54,6 +56,8 @@ export function Reports({canExport}: {canExport: boolean}) {
     return () => activeRequest.current?.abort();
   }, [kind, from, to]);
   const keys = report?.rows[0] ? Object.keys(report.rows[0]) : [];
+  const summary = report?.rows.length ? summarizeReport(report.rows) : null;
+  const presets = reportPresets();
   return (
     <>
       <div className="admin-page-heading">
@@ -64,6 +68,22 @@ export function Reports({canExport}: {canExport: boolean}) {
         </div>
       </div>
       <section className="admin-card">
+        <div className="admin-report-presets" role="group" aria-label="Quick date ranges">
+          {presets.map((preset) => (
+            <button
+              type="button"
+              key={preset.id}
+              className={from === preset.from && to === preset.to ? 'is-active' : ''}
+              aria-pressed={from === preset.from && to === preset.to}
+              onClick={() => {
+                setFrom(preset.from);
+                setTo(preset.to);
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
         <form
           className="admin-report-filters"
           onSubmit={(e) => {
@@ -106,6 +126,7 @@ export function Reports({canExport}: {canExport: boolean}) {
           <>
             <div className="admin-subheading">
               <h3>{report.total.toLocaleString('en-IN')} records</h3>
+              <PrintButton />
               {canExport && loaded === query && (
                 <a className="admin-button secondary" href={'/api/admin/reports?' + query + '&format=csv'}>
                   Download CSV
@@ -124,12 +145,53 @@ export function Reports({canExport}: {canExport: boolean}) {
                 Showing/exporting the first 5,000 records. Choose a smaller date range for a complete report.
               </p>
             )}
+            {summary && (
+              <div className="admin-report-summary">
+                <div>
+                  <span>Records</span>
+                  <strong>{summary.records.toLocaleString('en-IN')}</strong>
+                </div>
+                {summary.copies !== null && (
+                  <div>
+                    <span>Book copies</span>
+                    <strong>{summary.copies.toLocaleString('en-IN')}</strong>
+                  </div>
+                )}
+                <div>
+                  <span>People</span>
+                  <strong>{summary.people.toLocaleString('en-IN')}</strong>
+                </div>
+                <div className="wide">
+                  <span>{summary.copies !== null ? 'Most active (copies)' : 'Most records'}</span>
+                  <ol>
+                    {summary.topPeople.map((person) => (
+                      <li key={person.name}>
+                        {person.name} <b>{person.count.toLocaleString('en-IN')}</b>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <div className="wide">
+                  <span>By status</span>
+                  <ul>
+                    {summary.byStatus.map((item) => (
+                      <li key={item.status}>
+                        {display(item.status)} <b>{item.count.toLocaleString('en-IN')}</b>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {report?.limited && (
+                  <p className="admin-form-help">Summary covers the first 5,000 records.</p>
+                )}
+              </div>
+            )}
             <div className="admin-table-scroll">
               <table className="admin-table">
                 <thead>
                   <tr>
                     {keys.map((k) => (
-                      <th key={k}>{k}</th>
+                      <th key={k}>{columnLabel(k)}</th>
                     ))}
                   </tr>
                 </thead>
