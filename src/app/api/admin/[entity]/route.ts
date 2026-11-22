@@ -78,6 +78,26 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
     if (ctx.staff.role !== 'admin')
       return NextResponse.json({message: 'Administrator access required.'}, {status: 403});
     result = await ctx.db.rpc('admin_content_save', {p_data: body});
+  } else if (entity === 'content-delete' || entity === 'content-year') {
+    if (ctx.staff.role !== 'admin')
+      return NextResponse.json({message: 'Administrator access required.'}, {status: 403});
+    const ids = Array.isArray(body.ids) ? body.ids : [];
+    if (entity === 'content-delete') {
+      if (typeof body.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.id))
+        return NextResponse.json({message: 'Choose a record first.'}, {status: 400});
+      result = await ctx.db.rpc('admin_content_delete', {p_id: body.id});
+    } else {
+      if (
+        !ids.length ||
+        ids.length > 500 ||
+        !ids.every((x: unknown) => typeof x === 'string' && /^[0-9a-f-]{36}$/i.test(x))
+      )
+        return NextResponse.json({message: 'Choose between 1 and 500 photographs.'}, {status: 400});
+      result = await ctx.db.rpc('admin_content_set_year', {
+        p_ids: ids,
+        p_year: typeof body.year === 'string' ? body.year : '',
+      });
+    }
   } else if (['renew', 'followup', 'approve', 'correct'].includes(entity))
     result = await ctx.db.rpc('admin_' + entity, {p_data: body});
   else if (entity === 'team') {
@@ -122,6 +142,7 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
               : 'Unable to save. Check your details and try again.';
     return NextResponse.json({message}, {status: code === '42501' ? 403 : 400});
   }
-  if (entity === 'content') revalidatePath('/', 'layout');
+  if (entity === 'content' || entity === 'content-delete' || entity === 'content-year')
+    revalidatePath('/', 'layout');
   return NextResponse.json({ok: true, id: result.data});
 }

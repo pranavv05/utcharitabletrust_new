@@ -5,6 +5,8 @@ export type GalleryPhoto = {
   caption: string;
   description: string;
   href: string;
+  /** Four-digit year the photograph was taken, when an administrator has set one. */
+  year?: string;
 };
 export const photoCatalogue: GalleryPhoto[] = catalogue;
 export function photoDetails(src: string, category: string) {

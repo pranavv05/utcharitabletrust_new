@@ -1,10 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {programmes, gallery} from '../src/lib/content';
-import team from '../src/lib/team.json';
+import {fallbackContent} from '../src/lib/site-content';
 import {guideReply} from '../src/lib/trust-chat';
 import {groqReply} from '../src/lib/groq-chat';
-const site = {programmes, gallery, team, announcements: []};
+const site = fallbackContent;
 test('trust guide returns book-bank information with usable local links', () => {
   const r = guideReply('How can I donate books?', site);
   assert.equal(r.mode, 'guide');
