@@ -3,5 +3,5 @@
   "bracketSpacing": false,
   "printWidth": 110,
   "trailingComma": "all",
-  "endOfLine": "lf"
+  "endOfLine": "auto"
 }
