@@ -2287,3 +2287,33 @@ html[data-theme='dark'] .admin-login {
 .admin-menu-toggle {
   flex-shrink: 0;
 }
+
+/* Collapsible rarely-used group in the sidebar */
+.admin-nav-more > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  padding: 0 14px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--a-muted);
+}
+.admin-nav-more > summary::-webkit-details-marker {
+  display: none;
+}
+.admin-nav-more > summary::after {
+  content: '+';
+  font-size: 1rem;
+  line-height: 1;
+}
+.admin-nav-more[open] > summary::after {
+  content: '–';
+}
+.admin-nav-more > summary:focus-visible {
+  outline: 2px solid var(--a-focus, currentColor);
+  outline-offset: 2px;
+}
