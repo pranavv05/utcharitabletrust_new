@@ -5,27 +5,35 @@ import {useState, useEffect, useRef} from 'react';
 import {X, ChevronLeft, ChevronRight} from 'lucide-react';
 import {useSiteContent} from './site-content-provider';
 import {gsap, useGSAP} from '@/lib/motion';
+import {YearFilter} from '@/components/year-filter';
+import {byYear, yearsOf, type YearFilter as YearValue} from '@/lib/media';
 const PAGE_SIZE = 24;
 export function Gallery() {
   const {gallery} = useSiteContent();
   const [category, setCategory] = useState('All photos');
   const [sort, setSort] = useState('featured');
+  const [year, setYear] = useState<YearValue>('all');
   const [selected, setSelected] = useState<string | null>(null);
   const [loadedPhoto, setLoadedPhoto] = useState('');
   const [visible, setVisible] = useState(PAGE_SIZE);
   const scope = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
-  const filtered = gallery
+  const years = yearsOf(gallery);
+  const filtered = byYear(gallery, year)
     .filter((g) => category === 'All photos' || g.category === category)
     .toSorted((a, b) =>
       sort === 'title'
         ? a.caption.localeCompare(b.caption)
         : sort === 'title-desc'
           ? b.caption.localeCompare(a.caption)
-          : sort === 'category'
-            ? a.category.localeCompare(b.category) || a.caption.localeCompare(b.caption)
-            : 0,
+          : sort === 'year-new'
+            ? (b.year || '').localeCompare(a.year || '')
+            : sort === 'year-old'
+              ? (a.year || '9999').localeCompare(b.year || '9999')
+              : sort === 'category'
+                ? a.category.localeCompare(b.category) || a.caption.localeCompare(b.caption)
+                : 0,
     );
   const index = filtered.findIndex((g) => g.src === selected);
   const current = index < 0 ? null : filtered[index];
@@ -48,7 +56,7 @@ export function Gallery() {
       });
       return () => mm.revert();
     },
-    {scope, dependencies: [category, sort, gallery], revertOnUpdate: true},
+    {scope, dependencies: [category, sort, year, gallery], revertOnUpdate: true},
   );
   useEffect(() => {
     const photo = new URLSearchParams(window.location.search).get('photo');
@@ -100,9 +108,23 @@ export function Gallery() {
             <option value="title">Title: A–Z</option>
             <option value="title-desc">Title: Z–A</option>
             <option value="category">Subject</option>
+            {years.length > 0 && <option value="year-new">Year: newest first</option>}
+            {years.length > 0 && <option value="year-old">Year: oldest first</option>}
           </select>
         </label>
       </div>
+      {years.length > 0 && (
+        <YearFilter
+          years={years}
+          value={year}
+          hasUndated={gallery.some((g) => !g.year)}
+          onChange={(value) => {
+            setYear(value);
+            setSelected(null);
+            setVisible(PAGE_SIZE);
+          }}
+        />
+      )}
       <div className="gallery-grid photo-only-gallery">
         {filtered.slice(0, visible).map((g, i) => (
           <button
@@ -195,7 +217,10 @@ export function Gallery() {
               </button>
             </div>
             <figcaption>
-              <span>{current.category}</span>
+              <span>
+                {current.category}
+                {current.year ? ' · ' + current.year : ''}
+              </span>
               <h2 id="photo-detail-title">{current.caption}</h2>
               <p>{current.description}</p>
               <Link href={current.href} className="text-link">

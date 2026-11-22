@@ -6,15 +6,19 @@ import {usePathname} from 'next/navigation';
 import {useEffect, useRef, useState} from 'react';
 import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 import {useSmoothScroll} from '@/hooks/use-smooth-scroll';
+import {useSiteContent} from '@/components/site-content-provider';
+import {IsoBadge} from '@/components/iso-badge';
 const links = [
   ['Our story', '/about'],
   ['Our work', '/our-work'],
   ['Book bank', '/book-bank'],
   ['Moments', '/gallery'],
+  ['News & Media', '/news'],
   ['Get in touch', '/contact'],
 ];
 
 export function Header() {
+  const {iso} = useSiteContent();
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const path = usePathname();
@@ -95,6 +99,7 @@ export function Header() {
         <Link href="/" className="immersive-brand" aria-label="UT Charitable Trust home">
           <BrandLogo />
         </Link>
+        <IsoBadge iso={iso} />
         <nav className="quiet-nav" aria-label="Main navigation">
           <Link href="/our-work" aria-current={path === '/our-work' ? 'page' : undefined}>
             Our work
@@ -180,8 +185,17 @@ export function Header() {
                 <Link href="/president-message" onClick={() => setOpen(false)}>
                   President’s message
                 </Link>
-                <Link href="/certificates" onClick={() => setOpen(false)}>
-                  Trust certificates
+                <Link href="/legal" onClick={() => setOpen(false)}>
+                  Legal documents
+                </Link>
+                <Link href="/partners" onClick={() => setOpen(false)}>
+                  Our partners
+                </Link>
+                <Link href="/testimonials" onClick={() => setOpen(false)}>
+                  Testimonials
+                </Link>
+                <Link href="/interns" onClick={() => setOpen(false)}>
+                  Our interns
                 </Link>
                 <Link href="/join" onClick={() => setOpen(false)}>
                   Become a member

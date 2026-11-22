@@ -8,6 +8,8 @@ import {Voices} from '@/components/sections/voices';
 import {VelocityMarquee} from '@/components/sections/velocity-marquee';
 import {Experience} from '@/components/sections/experience';
 import {MagneticLink} from '@/components/ui/magnetic-link';
+import {TestimonialsSection} from '@/components/testimonials';
+import {PartnersStrip} from '@/components/partners';
 
 export default function Home() {
   return (
@@ -20,6 +22,8 @@ export default function Home() {
       <TrustNumbers />
       <HorizontalGallery />
       <Voices />
+      <TestimonialsSection />
+      <PartnersStrip />
       <section id="together" className="chapter final-chapter">
         <div className="experience-container">
           <span className="chapter-tag" data-reveal>
