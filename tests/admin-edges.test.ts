@@ -28,3 +28,14 @@ test('malformed login payloads fail validation instead of dereferencing null', (
   );
   assert.equal(authRequestSchema.safeParse({action: 'logout'}).success, true);
 });
+
+test('daysOverdue counts whole days in India time and never goes negative', async () => {
+  const {daysOverdue, monthStart} = await import('../src/lib/admin/dates');
+  const now = new Date('2026-11-22T20:00:00Z'); // 23 Nov 01:30 in India
+  assert.equal(daysOverdue('2026-11-20', now), 3);
+  assert.equal(daysOverdue('2026-11-23', now), 0);
+  assert.equal(daysOverdue('2026-12-01', now), 0);
+  assert.equal(daysOverdue(null, now), 0);
+  assert.equal(daysOverdue('not a date', now), 0);
+  assert.equal(monthStart(now), '2026-11-01');
+});
