@@ -22,5 +22,12 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 export const config = {
-  matcher: ['/admin/:path*', '/login', '/api/admin/:path*', '/api/admin-media', '/api/auth'],
+  matcher: [
+    '/admin/:path*',
+    '/login',
+    '/api/admin/:path*',
+    '/api/admin-media/:path*',
+    '/api/admin-media',
+    '/api/auth',
+  ],
 };

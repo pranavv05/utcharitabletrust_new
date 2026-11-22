@@ -15,13 +15,22 @@ const rank = (role: string) =>
 export function TeamDirectory({team}: {team: SiteContent['team']}) {
   const [role, setRole] = useState('Leadership');
   const [sort, setSort] = useState('seniority');
+  const [query, setQuery] = useState('');
   const roles = useMemo(
     () =>
       Array.from(new Set(team.map((p) => p.role))).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b)),
     [team],
   );
+  const needle = query.trim().toLowerCase();
   const people = team
-    .filter((p) => (role === 'Leadership' ? rank(p.role) < 10 : p.role === role))
+    // A search looks across everyone, whichever role is selected.
+    .filter((p) =>
+      needle
+        ? (p.name + ' ' + p.role + ' ' + (p.bio || '')).toLowerCase().includes(needle)
+        : role === 'Leadership'
+          ? rank(p.role) < 10
+          : p.role === role,
+    )
     .toSorted((a, b) =>
       sort === 'name'
         ? a.name.localeCompare(b.name)
@@ -45,6 +54,15 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
           ))}
         </div>
         <label>
+          Search people
+          <input
+            type="search"
+            value={query}
+            placeholder="Name or role"
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <label>
           Sort by
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
             <option value="seniority">Leadership order</option>
@@ -55,7 +73,13 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
       </div>
       <div className="directory-heading">
         <h2>
-          {role === 'Leadership' ? 'Guiding the trust' : role === 'Trust member' ? 'Our trust members' : role}
+          {needle
+            ? `Results for “${query.trim()}”`
+            : role === 'Leadership'
+              ? 'Guiding the trust'
+              : role === 'Trust member'
+                ? 'Our trust members'
+                : role}
         </h2>
         <p>
           {role === 'Leadership'
@@ -69,10 +93,13 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
             <TrustImage src={m.image} alt={m.name} loading="lazy" />
             <h3>{m.name}</h3>
             <p>{m.role}</p>
+            {m.bio && <p className="team-bio">{m.bio}</p>}
           </article>
         ))}
       </div>
-      {!people.length && <p>No published profiles for this role yet.</p>}
+      {!people.length && (
+        <p>{needle ? 'Nobody matches that search.' : 'No published profiles for this role yet.'}</p>
+      )}
     </div>
   );
 }

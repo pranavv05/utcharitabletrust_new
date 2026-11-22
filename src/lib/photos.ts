@@ -5,6 +5,8 @@ export type GalleryPhoto = {
   caption: string;
   description: string;
   href: string;
+  /** Four-digit year the photograph was taken, when an administrator has set one. */
+  year?: string;
 };
 export const photoCatalogue: GalleryPhoto[] = catalogue;
 export function photoDetails(src: string, category: string) {
@@ -22,3 +24,9 @@ export function programmePhotos(slug: string) {
 }
 
 export const photoCategory = (category: string) => (category === 'Support' ? 'Essential support' : category);
+
+/** The website path of a programme. */
+export const programmeHref = (slug: string) => (slug === 'book-bank' ? '/book-bank' : '/our-work/' + slug);
+/** Photographs linked to a programme, taken from the managed gallery so their years are included. */
+export const photosForProgramme = (gallery: GalleryPhoto[], slug: string) =>
+  gallery.filter((photo) => photo.href === programmeHref(slug));
