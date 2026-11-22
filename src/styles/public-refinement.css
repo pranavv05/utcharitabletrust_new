@@ -1454,3 +1454,90 @@
     transition: none;
   }
 }
+
+/* Gallery: paged grid */
+.gallery-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 36px 0 8px;
+}
+.gallery-more p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted, #5b6b62);
+}
+
+/* Certificates: four documents read best as a 2x2 grid */
+.cert-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 920px;
+  margin-inline: auto;
+}
+@media (max-width: 600px) {
+  .cert-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small labels stay legible */
+.overline,
+.chapter-tag {
+  font-size: max(0.72rem, 11.5px);
+}
+
+/* Touch targets: at least 44px tall on phones and tablets */
+@media (max-width: 900px) {
+  .footer-links-grid > div > a,
+  .text-link,
+  .contact-channel a,
+  .contact-directions,
+  .back-to-top,
+  .programme-card-link,
+  .team-role-filters button,
+  .filter-tabs button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .footer-links-grid > div > a {
+    display: flex;
+  }
+  summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Header menu button and footer social icons get a full-size touch area */
+.immersive-menu-toggle {
+  min-height: 44px;
+  min-width: 44px;
+}
+.footer-social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+.editorial-link {
+  display: inline-block;
+  padding-block: 10px;
+}
+
+/* Smaller floating buttons on phones so they cover less content */
+@media (max-width: 760px) {
+  .trust-floating-actions {
+    right: 14px;
+    bottom: 14px;
+    gap: 10px;
+  }
+  .trust-floating-actions > a,
+  .trust-floating-actions > button {
+    width: 48px;
+    height: 48px;
+  }
+}
