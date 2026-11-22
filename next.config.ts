@@ -10,7 +10,7 @@ const csp = [
   `img-src 'self' data: blob:${supabase ? ' ' + supabase.origin : ''}`,
   "font-src 'self' data:",
   `connect-src 'self'${supabase ? ` ${supabase.origin} wss://${supabase.host}` : ''}${dev ? ' ws:' : ''}`,
-  'frame-src https://challenges.cloudflare.com',
+  'frame-src https://challenges.cloudflare.com https://maps.google.com https://www.google.com',
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
