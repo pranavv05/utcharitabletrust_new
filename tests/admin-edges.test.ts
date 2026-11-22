@@ -39,3 +39,11 @@ test('daysOverdue counts whole days in India time and never goes negative', asyn
   assert.equal(daysOverdue('not a date', now), 0);
   assert.equal(monthStart(now), '2026-11-01');
 });
+
+test('database messages that still say loan are shown as issued-book wording', async () => {
+  const {plainTerms} = await import('../src/lib/admin/terms');
+  assert.equal(plainTerms('Choose an outstanding loan'), 'Choose an outstanding issue record');
+  assert.equal(plainTerms('Resolve outstanding loans first'), 'Resolve outstanding issued books first');
+  assert.equal(plainTerms('Loans are closed'), 'Issued books are closed');
+  assert.equal(plainTerms('Nothing to change'), 'Nothing to change');
+});

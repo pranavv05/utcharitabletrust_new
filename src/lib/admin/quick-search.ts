@@ -2,7 +2,7 @@ import type {Row} from './config';
 
 export type QuickResult = {
   key: string;
-  group: 'Books' | 'People' | 'Loans';
+  group: 'Books' | 'People' | 'Issued books';
   title: string;
   detail: string;
   href: string;
@@ -50,8 +50,8 @@ export function quickResults(entity: 'books' | 'people' | 'loans', rows: Row[], 
       }
       return {
         key: 'loan-' + id,
-        group: 'Loans',
-        title: text(row.orderNo) || 'Loan',
+        group: 'Issued books',
+        title: text(row.orderNo) || 'Issue',
         detail: [text(row.name), label(row.status)].filter(Boolean).join(' · '),
         href: '/admin/loans?id=' + id,
       };

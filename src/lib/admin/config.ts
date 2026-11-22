@@ -33,9 +33,9 @@ export const sections = {
     ],
   },
   loans: {
-    title: 'Loans',
+    title: 'Issued books',
     description: 'Issue books, track due dates, and follow up with readers.',
-    singular: 'loan',
+    singular: 'issued book',
     columns: ['orderNo', 'name', 'issueDate', 'endDate', 'status'],
     filters: ['issue', 'overdue', 'partial_return', 'return', 'lost', 'closed_correction'],
     fields: [],
@@ -51,7 +51,7 @@ export const sections = {
   returns: {
     title: 'Return books',
     description:
-      'Search by borrower, phone, reference or scanned UTBN. Open a loan to select returned copies.',
+      'Search by borrower, phone, reference or scanned UTBN. Open an issued book record to select returned copies.',
     singular: 'return',
     columns: ['orderNo', 'name', 'phone', 'endDate', 'status'],
     filters: ['overdue', 'issue', 'partial_return'],
