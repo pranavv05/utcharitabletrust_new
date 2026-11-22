@@ -9,12 +9,18 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
+  UserCheck,
   ArrowLeftRight,
-  HeartHandshake,
+  Undo2,
+  Gift,
   Inbox,
   Tags,
   PenLine,
   History,
+  BarChart3,
+  Globe,
+  ShieldCheck,
+  Archive,
   Settings,
   LogOut,
   Menu,
@@ -23,40 +29,68 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import {ThemeToggle} from '@/components/theme-toggle';
-const groups: {label: string; items: [string, string, LucideIcon][]}[] = [
+type NavItem = {href: string; label: string; Icon: LucideIcon; adminOnly?: boolean};
+type NavGroup = {label: string; items: NavItem[]; collapsed?: boolean};
+/** Grouped by how often staff use each page: daily work first, rarely-used records last. */
+export const navGroups: NavGroup[] = [
+  {label: 'OVERVIEW', items: [{href: '/admin', label: 'Overview', Icon: LayoutDashboard}]},
   {
-    label: 'WORKSPACE',
+    label: 'DAILY WORK',
     items: [
-      ['/admin', 'Overview', LayoutDashboard],
-      ['/admin/books', 'Book inventory', BookOpen],
-      ['/admin/loans', 'Loans', ArrowLeftRight],
-      ['/admin/donations', 'Donations', HeartHandshake],
-      ['/admin/returns', 'Return books', BookOpen],
-      ['/admin/people', 'Donors & borrowers', HeartHandshake],
+      {href: '/admin/loans', label: 'Loans', Icon: ArrowLeftRight},
+      {href: '/admin/returns', label: 'Return books', Icon: Undo2},
+      {href: '/admin/donations', label: 'Donations', Icon: Gift},
+      {href: '/admin/submissions', label: 'Inbox', Icon: Inbox},
     ],
   },
   {
-    label: 'COMMUNITY',
+    label: 'LIBRARY',
     items: [
-      ['/admin/members', 'Members', Users],
-      ['/admin/submissions', 'Inbox', Inbox],
+      {href: '/admin/books', label: 'Book inventory', Icon: BookOpen},
+      {href: '/admin/authors', label: 'Authors', Icon: PenLine},
+      {href: '/admin/classes', label: 'Classes & categories', Icon: Tags},
     ],
   },
   {
-    label: 'DIRECTORY & RECORDS',
+    label: 'PEOPLE',
     items: [
-      ['/admin/authors', 'Authors', PenLine],
-      ['/admin/classes', 'Classes & categories', Tags],
-      ['/admin/contacts', 'Contact archive', MessageSquare],
-      ['/admin/feedback', 'Feedback archive', MessageSquare],
-      ['/admin/audit', 'Activity log', History],
-      ['/admin/reports', 'Reports', History],
-      ['/admin/content', 'Website content', PenLine],
-      ['/admin/conflicts', 'Record review', Tags],
-      ['/admin/settings', 'Settings', Settings],
+      {href: '/admin/people', label: 'Donors & borrowers', Icon: Users},
+      {href: '/admin/members', label: 'Members', Icon: UserCheck},
+    ],
+  },
+  {
+    label: 'INSIGHTS',
+    items: [
+      {href: '/admin/reports', label: 'Reports', Icon: BarChart3},
+      {href: '/admin/audit', label: 'Activity log', Icon: History},
+    ],
+  },
+  {
+    label: 'WEBSITE & ADMIN',
+    items: [
+      {href: '/admin/content', label: 'Website content', Icon: Globe, adminOnly: true},
+      {href: '/admin/conflicts', label: 'Record review', Icon: ShieldCheck, adminOnly: true},
+      {href: '/admin/settings', label: 'Settings', Icon: Settings},
+    ],
+  },
+  {
+    label: 'ARCHIVES',
+    collapsed: true,
+    items: [
+      {href: '/admin/contacts', label: 'Contact archive', Icon: MessageSquare},
+      {href: '/admin/feedback', label: 'Feedback archive', Icon: Archive},
     ],
   },
 ];
+/** The nav entry that owns a path; sub-paths such as /admin/loans/123 resolve to their section. */
+export function activeNavItem(path: string, role: string) {
+  return navGroups
+    .flatMap((g) => g.items)
+    .filter((i) => role === 'admin' || !i.adminOnly)
+    .find((i) =>
+      i.href === '/admin' ? path === '/admin' : path === i.href || path.startsWith(i.href + '/'),
+    );
+}
 export function AdminShell({children, name, role}: {children: React.ReactNode; name: string; role: string}) {
   const path = usePathname();
   const router = useRouter();
@@ -120,7 +154,7 @@ export function AdminShell({children, name, role}: {children: React.ReactNode; n
       setMessage('Unable to sign out. Please try again.');
     }
   }
-  const title = groups.flatMap((g) => g.items).find(([href]) => href === path)?.[1] || 'Workspace';
+  const title = activeNavItem(path, role)?.label || 'Workspace';
   return (
     <div className="admin-app">
       <aside
@@ -140,27 +174,40 @@ export function AdminShell({children, name, role}: {children: React.ReactNode; n
           <X size={20} />
         </button>
         <nav>
-          {groups.map((group) => (
-            <div className="admin-nav-group" key={group.label}>
-              <p>{group.label}</p>
-              {group.items
-                .filter(
-                  ([href]) => role === 'admin' || !['/admin/content', '/admin/conflicts'].includes(href),
-                )
-                .map(([href, label, Icon]) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={path === href ? 'is-active' : ''}
-                    aria-current={path === href ? 'page' : undefined}
-                    onClick={() => setOpen(false)}
-                  >
-                    <Icon size={18} />
-                    <span>{label}</span>
-                  </Link>
-                ))}
-            </div>
-          ))}
+          {navGroups.map((group) => {
+            const items = group.items.filter((item) => role === 'admin' || !item.adminOnly);
+            if (!items.length) return null;
+            const links = items.map(({href, label, Icon}) => {
+              const current = activeNavItem(path, role)?.href === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={current ? 'is-active' : ''}
+                  aria-current={current ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </Link>
+              );
+            });
+            return group.collapsed ? (
+              <details
+                className="admin-nav-group admin-nav-more"
+                key={group.label}
+                open={items.some((i) => path.startsWith(i.href))}
+              >
+                <summary>{group.label}</summary>
+                {links}
+              </details>
+            ) : (
+              <div className="admin-nav-group" key={group.label}>
+                <p>{group.label}</p>
+                {links}
+              </div>
+            );
+          })}
         </nav>
         <div className="admin-sidebar-bottom">
           <Link href="/" target="_blank">
