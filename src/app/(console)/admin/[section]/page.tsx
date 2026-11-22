@@ -36,6 +36,12 @@ export default async function Page({
   });
   if (error) throw Error('Unable to load this section. Please try again.');
   return (
-    <Workspace key={section} section={section as Section} initial={data} canWrite={staff.role !== 'viewer'} />
+    <Workspace
+      key={section}
+      section={section as Section}
+      initial={data}
+      canWrite={staff.role !== 'viewer'}
+      isAdmin={staff.role === 'admin'}
+    />
   );
 }

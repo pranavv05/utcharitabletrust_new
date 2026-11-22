@@ -2,7 +2,7 @@ import {revalidatePath} from 'next/cache';
 import {toCsv} from '@/lib/admin/csv';
 import {NextResponse} from 'next/server';
 import {staffContext} from '@/lib/supabase/server';
-import {sameOrigin, parsePage, staffAccessSchema} from '@/lib/validation';
+import {sameOrigin, parsePage, staffAccessSchema, recordActionSchema} from '@/lib/validation';
 import {sections} from '@/lib/admin/config';
 import {plainTerms} from '@/lib/admin/terms';
 export async function GET(request: Request, {params}: {params: Promise<{entity: string}>}) {
@@ -90,6 +90,12 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
       p_role: access.data.role,
       p_active: access.data.active !== false,
     });
+  } else if (entity === 'delete' || entity === 'restore') {
+    const action = recordActionSchema.safeParse(body);
+    if (!action.success) return NextResponse.json({message: 'Choose a record first.'}, {status: 400});
+    if (entity === 'delete' && ctx.staff.role !== 'admin')
+      return NextResponse.json({message: 'Only an administrator can delete records.'}, {status: 403});
+    result = await ctx.db.rpc('admin_' + entity, {p_entity: action.data.entity, p_id: action.data.id});
   } else if (['donate', 'issue', 'return'].includes(entity))
     result = await ctx.db.rpc('admin_' + entity, {p_data: body});
   else if (entity === 'submissions')
@@ -111,7 +117,9 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
           ? plainTerms(result.error.message)
           : code === '22007' || code === '22P02'
             ? 'Check the selected values and dates.'
-            : 'Unable to save. Check your details and try again.';
+            : code === '42501'
+              ? 'You do not have permission to do this.'
+              : 'Unable to save. Check your details and try again.';
     return NextResponse.json({message}, {status: code === '42501' ? 403 : 400});
   }
   if (entity === 'content') revalidatePath('/', 'layout');
