@@ -5,6 +5,7 @@ import './editorial.css';
 import '@/styles/experience.css';
 import '@/styles/visual-refresh.css';
 import '@/styles/public-refinement.css';
+import '@/styles/image-fit.css';
 
 const display=localFont({src:'../styles/fonts/display.ttf',variable:'--type-display',display:'swap',weight:'200 800'});
 const sans=localFont({src:'../styles/fonts/sans.ttf',variable:'--type-sans',display:'swap',weight:'100 1000'});
