@@ -98,6 +98,9 @@ Incremental migrations added by this upgrade:
 - `20261122040000_staff_refresh.sql`: refresh staff workspaces after access changes.
 - `20261122050000_exact_copy_search.sql`: exact numeric UTBN matching for inventory and transactions, retaining reference/phone search when the number is not an existing copy.
 
+- `20261122100000_submission_abuse_limits.sql`: per-address hourly limit for public forms.
+- `20261122110000_admin_delete_restore.sql`: restore archived records and permanently delete unused ones (administrators only). Records with issue, donation, return or approval history can only be archived.
+
 These filenames are migration versions, not an instruction to rerun the private data import. Keep applied files immutable; fixes use new incremental migrations.
 
 ## Private snapshots and recovery limits

@@ -18,7 +18,8 @@ export function Reports({canExport}: {canExport: boolean}) {
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [loaded, setLoaded] = useState(''),
-    [page, setPage] = useState(1);
+    [page, setPage] = useState(1),
+    [filterText, setFilterText] = useState('');
   const activeRequest = useRef<AbortController | null>(null);
   const query = new URLSearchParams({kind, from, to}).toString();
   async function load() {
@@ -53,9 +54,22 @@ export function Reports({canExport}: {canExport: boolean}) {
     setBusy(false);
     setReport(null);
     setLoaded('');
+    setFilterText('');
     return () => activeRequest.current?.abort();
   }, [kind, from, to]);
   const keys = report?.rows[0] ? Object.keys(report.rows[0]) : [];
+  const needle = filterText.trim().toLowerCase();
+  const shown = report
+    ? needle
+      ? report.rows.filter((row) =>
+          Object.values(row).some((v) =>
+            String(v ?? '')
+              .toLowerCase()
+              .includes(needle),
+          ),
+        )
+      : report.rows
+    : [];
   const summary = report?.rows.length ? summarizeReport(report.rows) : null;
   const presets = reportPresets();
   return (
@@ -186,6 +200,20 @@ export function Reports({canExport}: {canExport: boolean}) {
                 )}
               </div>
             )}
+            {report.rows.length > 0 && (
+              <label className="admin-report-search">
+                <span className="admin-visually-hidden">Search this report</span>
+                <input
+                  type="search"
+                  placeholder="Search this report by name, reference, book or status…"
+                  value={filterText}
+                  onChange={(e) => {
+                    setFilterText(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </label>
+            )}
             <div className="admin-table-scroll">
               <table className="admin-table">
                 <thead>
@@ -196,7 +224,7 @@ export function Reports({canExport}: {canExport: boolean}) {
                   </tr>
                 </thead>
                 <tbody>
-                  {report.rows.slice((page - 1) * 50, page * 50).map((row, i) => (
+                  {shown.slice((page - 1) * 50, page * 50).map((row, i) => (
                     <tr key={i}>
                       {keys.map((k) => (
                         <td key={k}>{display(row[k])}</td>
@@ -205,19 +233,22 @@ export function Reports({canExport}: {canExport: boolean}) {
                   ))}
                 </tbody>
               </table>
-              {!report.rows.length && <p className="admin-empty-inline">No records in this date range.</p>}
+              {!shown.length && (
+                <p className="admin-empty-inline">
+                  {report.rows.length ? 'No rows match your search.' : 'No records in this date range.'}
+                </p>
+              )}
             </div>
-            {report.rows.length > 50 && (
+            {shown.length > 50 && (
               <div className="admin-pagination">
                 <span>
-                  Showing {(page - 1) * 50 + 1}–{Math.min(page * 50, report.rows.length)} of{' '}
-                  {report.rows.length}
+                  Showing {(page - 1) * 50 + 1}–{Math.min(page * 50, shown.length)} of {shown.length}
                 </span>
                 <div>
                   <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
                     Previous
                   </button>
-                  <button disabled={page * 50 >= report.rows.length} onClick={() => setPage((p) => p + 1)}>
+                  <button disabled={page * 50 >= shown.length} onClick={() => setPage((p) => p + 1)}>
                     Next
                   </button>
                 </div>

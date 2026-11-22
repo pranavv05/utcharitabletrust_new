@@ -2536,3 +2536,20 @@ html[data-theme='dark'] .admin-login {
   outline: 2px solid var(--a-focus, currentColor);
   outline-offset: 2px;
 }
+
+/* Destructive row action */
+.admin-archive.danger:hover,
+.admin-archive.danger:focus-visible {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+.admin-report-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.admin-report-search input {
+  flex: 1;
+  max-width: 360px;
+}

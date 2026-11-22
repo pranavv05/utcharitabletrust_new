@@ -18,6 +18,8 @@ import {
   Check,
   Archive,
   LoaderCircle,
+  RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import {sections, labels, display, type Row, type Section, type Field} from '@/lib/admin/config';
 import {Badge} from './dashboard';
@@ -647,10 +649,12 @@ function LoanDetail({id, canWrite, onChanged}: {id: string; canWrite: boolean; o
 export function Workspace({
   section,
   canWrite,
+  isAdmin = false,
   initial,
 }: {
   section: Section;
   canWrite: boolean;
+  isAdmin?: boolean;
   initial: {rows: Row[]; total: number; page: number};
 }) {
   const cfg = sections[section];
@@ -732,6 +736,36 @@ export function Workspace({
     try {
       await send(section, {id: row.id, archive: true});
       saved();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function restore() {
+    if (!row) return;
+    setError('');
+    setBusy(true);
+    try {
+      await send('restore', {entity: section, id: row.id});
+      setNotice('Record restored.');
+      setRevision((x) => x + 1);
+      close();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function remove() {
+    if (!row) return;
+    setError('');
+    setBusy(true);
+    try {
+      await send('delete', {entity: section, id: row.id});
+      setNotice('Record deleted permanently.');
+      setRevision((x) => x + 1);
+      close();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -947,7 +981,20 @@ export function Workspace({
                     >
                       {canWrite && configFields.length ? 'Edit' : 'View'}
                     </button>
-                    {canWrite && configFields.length > 0 && (
+                    {canWrite && configFields.length > 0 && r.status === 'inactive' && (
+                      <button
+                        className="admin-archive"
+                        title="Restore record"
+                        aria-label={'Restore ' + display(r.name || r.title || r.bookName)}
+                        onClick={() => {
+                          setRow(r);
+                          setDialog('restore');
+                        }}
+                      >
+                        <RotateCcw size={15} />
+                      </button>
+                    )}
+                    {canWrite && configFields.length > 0 && r.status !== 'inactive' && (
                       <button
                         className="admin-archive"
                         title="Archive record"
@@ -958,6 +1005,19 @@ export function Workspace({
                         }}
                       >
                         <Archive size={15} />
+                      </button>
+                    )}
+                    {isAdmin && configFields.length > 0 && (
+                      <button
+                        className="admin-archive danger"
+                        title="Delete permanently"
+                        aria-label={'Delete ' + display(r.name || r.title || r.bookName)}
+                        onClick={() => {
+                          setRow(r);
+                          setDialog('delete');
+                        }}
+                      >
+                        <Trash2 size={15} />
                       </button>
                     )}
                   </td>
@@ -1072,6 +1132,44 @@ export function Workspace({
           </div>
         </Dialog>
       )}
+      {dialog === 'restore' && row && (
+        <Dialog
+          title="Restore this record?"
+          subtitle="It becomes active again and appears in searches and forms."
+          onClose={close}
+        >
+          <ErrorMessage message={error} />
+          <div className="admin-form-footer">
+            <button className="admin-button secondary" onClick={close}>
+              Cancel
+            </button>
+            <button className="admin-button primary" disabled={busy} onClick={restore}>
+              Restore record
+            </button>
+          </div>
+        </Dialog>
+      )}
+      {dialog === 'delete' && row && (
+        <Dialog
+          title="Delete permanently?"
+          subtitle="This cannot be undone. The activity log keeps a copy of what was deleted."
+          onClose={close}
+        >
+          <p>
+            Only records that were never used can be deleted. Anything with issue, donation or return history
+            must be archived instead, so past reports and receipts keep their names.
+          </p>
+          <ErrorMessage message={error} />
+          <div className="admin-form-footer">
+            <button className="admin-button secondary" onClick={close}>
+              Cancel
+            </button>
+            <button className="admin-button danger" disabled={busy} onClick={remove}>
+              Delete permanently
+            </button>
+          </div>
+        </Dialog>
+      )}
       {dialog === 'view' && row && (
         <Dialog title={section === 'submissions' ? 'Message details' : 'Record details'} onClose={close}>
           <dl className="admin-detail-list">
@@ -1089,6 +1187,11 @@ export function Workspace({
           )}{' '}
           {section === 'submissions' && canWrite && (
             <div className="admin-form-footer">
+              {isAdmin && (
+                <button className="admin-button danger" disabled={busy} onClick={remove}>
+                  Delete message
+                </button>
+              )}
               <button className="admin-button secondary" onClick={() => review('archived')}>
                 Archive message
               </button>
