@@ -5,6 +5,7 @@ import {staffContext} from '@/lib/supabase/server';
 import {sameOrigin, parsePage, staffAccessSchema, recordActionSchema} from '@/lib/validation';
 import {sections} from '@/lib/admin/config';
 import {plainTerms} from '@/lib/admin/terms';
+import {orphanedPaths} from '@/lib/admin/media-cleanup';
 export async function GET(request: Request, {params}: {params: Promise<{entity: string}>}) {
   const ctx = await staffContext();
   if (!ctx) return NextResponse.json({message: 'Staff access required.'}, {status: 401});
@@ -85,7 +86,25 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
     if (entity === 'content-delete') {
       if (typeof body.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.id))
         return NextResponse.json({message: 'Choose a record first.'}, {status: 400});
+      const before = await ctx.db.rpc('admin_content', {p_kind: ''});
+      const record = (before.data as {id: string; data: Record<string, unknown>}[] | null)?.find(
+        (r) => r.id === body.id,
+      );
       result = await ctx.db.rpc('admin_content_delete', {p_id: body.id});
+      if (!result.error && record) {
+        // Best effort: remove uploaded files that no remaining content uses. A failure here never undoes the delete.
+        try {
+          const after = await ctx.db.rpc('admin_content', {p_kind: ''});
+          const paths = orphanedPaths(
+            record.data,
+            ((after.data as {data: Record<string, unknown>}[] | null) || []).map((r) => r.data),
+            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+          );
+          if (paths.length) await ctx.db.storage.from('trust-media').remove(paths);
+        } catch {
+          /* the files stay in storage; they can be removed from the Supabase dashboard */
+        }
+      }
     } else {
       if (
         !ids.length ||
@@ -98,7 +117,7 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
         p_year: typeof body.year === 'string' ? body.year : '',
       });
     }
-  } else if (['renew', 'followup', 'approve', 'correct'].includes(entity))
+  } else if (['renew', 'followup', 'approve', 'correct', 'cancel'].includes(entity))
     result = await ctx.db.rpc('admin_' + entity, {p_data: body});
   else if (entity === 'team') {
     const access = staffAccessSchema.safeParse(body);

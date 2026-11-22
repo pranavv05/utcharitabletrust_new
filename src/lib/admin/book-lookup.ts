@@ -14,10 +14,19 @@ type Fetch = typeof fetch;
 const clean = (value: unknown, max: number) =>
   typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, max) : '';
 
+/** Public book databases are sometimes slow to connect, so each source gets one quick retry. */
 async function getJson(url: string, fetchImpl: Fetch) {
-  const response = await fetchImpl(url, {signal: AbortSignal.timeout(8000), cache: 'no-store'});
-  if (!response.ok) return null;
-  return (await response.json()) as unknown;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetchImpl(url, {signal: AbortSignal.timeout(7000), cache: 'no-store'});
+      if (!response.ok) return null;
+      return (await response.json()) as unknown;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 /** Looks an ISBN up in Open Library first, then Google Books. Returns null when neither knows it. */
@@ -46,7 +55,7 @@ export async function lookupIsbn(input: string, fetchImpl: Fetch = fetch): Promi
         source: 'barcode',
         categories: (entry?.subjects || [])
           .map((s) => clean(s.name, 60))
-          .filter(Boolean)
+          .filter((c) => c && !/[:_]/.test(c))
           .slice(0, 5),
       };
     }
@@ -71,7 +80,7 @@ export async function lookupIsbn(input: string, fetchImpl: Fetch = fetch): Promi
         source: 'barcode',
         categories: (info?.categories || [])
           .map((c) => clean(c, 60))
-          .filter(Boolean)
+          .filter((c) => c && !/[:_]/.test(c))
           .slice(0, 5),
       };
     }

@@ -37,7 +37,7 @@ export const sections = {
     description: 'Issue books, track due dates, and follow up with readers.',
     singular: 'issued book',
     columns: ['orderNo', 'name', 'issueDate', 'endDate', 'status'],
-    filters: ['issue', 'overdue', 'partial_return', 'return', 'lost', 'closed_correction'],
+    filters: ['issue', 'overdue', 'partial_return', 'return', 'lost', 'closed_correction', 'cancelled'],
     fields: [],
   },
   donations: {
@@ -45,7 +45,7 @@ export const sections = {
     description: 'Register donated copies and keep every contribution linked to its donor.',
     singular: 'donation',
     columns: ['orderNo', 'name', 'issueDate', 'status'],
-    filters: [],
+    filters: ['new', 'cancelled'],
     fields: [],
   },
   returns: {
@@ -180,6 +180,9 @@ export function display(value: unknown) {
     membership: 'Membership',
     contact: 'Enquiry',
     closed_correction: 'Closed by correction',
+    cancelled: 'Cancelled',
+    reviewed: 'Reviewed',
+    archived: 'Archived',
     corrected: 'Historical correction',
     historical_return: 'Historical return',
   };

@@ -98,6 +98,7 @@ export function Catalogue() {
             }}
           >
             <option value="utbn">Sort by UTBN</option>
+            <option value="title">Sort by title</option>
             <option value="author">Sort by author</option>
             <option value="class_name">Sort by class</option>
           </select>

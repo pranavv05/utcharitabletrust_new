@@ -4,7 +4,7 @@ import {parseDonationCsv} from '@/lib/admin/donation-csv';
 import {PersonChooser} from './person-chooser';
 import {LookupInput} from './lookup-input';
 import {BookScanner, type ScannedBook} from './book-scanner';
-import {PersonProfile, LoanTools, ApplicationApproval} from './workflow-tools';
+import {PersonProfile, LoanTools, ApplicationApproval, CancelEntry} from './workflow-tools';
 import {useEffect, useRef, useState, useId} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import Link from 'next/link';
@@ -469,7 +469,17 @@ function IssueForm({onDone}: {onDone: (id: string) => void}) {
     </form>
   );
 }
-function LoanDetail({id, canWrite, onChanged}: {id: string; canWrite: boolean; onChanged: () => void}) {
+function LoanDetail({
+  id,
+  canWrite,
+  isAdmin = false,
+  onChanged,
+}: {
+  id: string;
+  canWrite: boolean;
+  isAdmin?: boolean;
+  onChanged: () => void;
+}) {
   const [data, setData] = useState<Row | null>(null);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
@@ -528,6 +538,8 @@ function LoanDetail({id, canWrite, onChanged}: {id: string; canWrite: boolean; o
   const items = (data?.items || []) as Row[];
   const person = (data?.person || {}) as Row;
   const outstanding = data && ['issue', 'partial_return'].includes(String(data.status));
+  const isDonation = data?.kind === 'donation';
+  const cancelled = data?.status === 'cancelled';
   if (!data)
     return (
       <>
@@ -549,12 +561,12 @@ function LoanDetail({id, canWrite, onChanged}: {id: string; canWrite: boolean; o
         </div>
         <div>
           <small>STATUS</small>
-          <Badge status={data.status} />
+          <Badge status={isDonation && data.status === 'new' ? 'Donation received' : data.status} />
         </div>
         <div>
           <small>DATES</small>
           <strong>{display(data.issueDate)}</strong>
-          <span>Due: {display(data.endDate)}</span>
+          {!isDonation && <span>Due: {display(data.endDate)}</span>}
         </div>
       </div>
       <form className="admin-form" onSubmit={submit}>
@@ -595,13 +607,15 @@ function LoanDetail({id, canWrite, onChanged}: {id: string; canWrite: boolean; o
                     <Badge status={b.status} />
                   </td>
                   <td>
-                    {b.disposition
-                      ? display(b.disposition)
-                      : data.status === 'new'
-                        ? 'Donated'
-                        : outstanding
-                          ? 'Outstanding'
-                          : 'Historical record'}
+                    {cancelled
+                      ? 'Cancelled'
+                      : b.disposition
+                        ? display(b.disposition)
+                        : data.status === 'new'
+                          ? 'Donated'
+                          : outstanding
+                            ? 'Outstanding'
+                            : 'Historical record'}
                   </td>
                 </tr>
               ))}
@@ -650,15 +664,32 @@ function LoanDetail({id, canWrite, onChanged}: {id: string; canWrite: boolean; o
           )}
         </div>
       </form>
-      <LoanTools
-        id={id}
-        data={data}
-        canWrite={canWrite}
-        onChanged={() => {
-          load();
-          onChanged();
-        }}
-      />
+      {!isDonation && !cancelled && (
+        <LoanTools
+          id={id}
+          data={data}
+          canWrite={canWrite}
+          onChanged={() => {
+            load();
+            onChanged();
+          }}
+        />
+      )}
+      {cancelled && (
+        <p className="admin-notice">
+          This entry was cancelled. It stays in history for the record and is not counted in reports.
+        </p>
+      )}
+      {isAdmin && !cancelled && (
+        <CancelEntry
+          id={id}
+          kind={isDonation ? 'donation' : 'loan'}
+          onDone={() => {
+            load();
+            onChanged();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1127,7 +1158,12 @@ export function Workspace({
       )}
       {dialog === 'detail' && row && (
         <Dialog title="Transaction details" onClose={close} wide>
-          <LoanDetail id={String(row.id)} canWrite={canWrite} onChanged={() => setRevision((x) => x + 1)} />
+          <LoanDetail
+            id={String(row.id)}
+            canWrite={canWrite}
+            isAdmin={isAdmin}
+            onChanged={() => setRevision((x) => x + 1)}
+          />
         </Dialog>
       )}
       {dialog === 'archive' && row && (
@@ -1204,7 +1240,7 @@ export function Workspace({
           {section === 'submissions' && canWrite && (
             <div className="admin-form-footer">
               {isAdmin && (
-                <button className="admin-button danger" disabled={busy} onClick={remove}>
+                <button className="admin-button danger" disabled={busy} onClick={() => setDialog('delete')}>
                   Delete message
                 </button>
               )}

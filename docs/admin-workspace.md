@@ -103,6 +103,16 @@ Administrators manage every public section from **Website content** (add, edit, 
 
 Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (MP4/WebM, 50 MB) are uploaded by the browser straight to storage with a one-time signed link created by an administrator. Uploaded files have public addresses even while attached to drafts. The migration `20261122120000_cms_sections.sql` also raises the storage bucket limit to 50 MB and allows PDF, MP4 and WebM. Permanent delete removes the content record only, not the uploaded file in storage; the activity log keeps a copy of the deleted record.
 
+## Cancelling a mistaken entry
+
+Administrators can cancel a donation or an issued-book entry that was entered by mistake, from the entry's detail screen. A reason (10 to 500 characters) is required and the cancellation cannot be undone, but nothing is erased:
+
+- An **issue** can be cancelled while nothing has been returned. Its copies go back on the shelf.
+- A **donation** can be cancelled while all its copies are still on the shelf and have never been issued. Its copies are archived. Book numbers (UTBN) already assigned are not reused.
+- The entry stays in history marked **Cancelled** (with who cancelled it and why, in the activity log). Date-range reports no longer count it. Anything that has been returned, or whose copies were issued, must be handled by archiving instead.
+
+Migration: `20261122130000_cancel_transactions.sql`. It also lets administrators delete the uploaded files that belonged to deleted website content (storage policies on hosted Supabase). When content is deleted from Website content, its uploaded files are removed if no other content uses them; this is best effort and never undoes the delete.
+
 ## Live updates and persistence
 
 Successful writes are acknowledged only after Supabase confirms them. Database transactions protect multi-record operations; failed writes do not display success. Change triggers increment rows in `public.trust_changes`, whose contents are limited to scope, version and timestamp. Only those counters are added to the Realtime publication. Private borrower, membership, audit and submission rows are never replicated to public clients.

@@ -95,10 +95,12 @@ export function Dashboard({
       <p className="admin-month-strip" aria-label="This month">
         <span>This month</span>
         <Link href="/admin/reports">
-          <b>{month.loans === null ? '—' : month.loans.toLocaleString('en-IN')}</b> books issued
+          <b>{month.loans === null ? '—' : month.loans.toLocaleString('en-IN')}</b>{' '}
+          {month.loans === 1 ? 'book' : 'books'} issued
         </Link>
         <Link href="/admin/reports">
-          <b>{month.donations === null ? '—' : month.donations.toLocaleString('en-IN')}</b> donations received
+          <b>{month.donations === null ? '—' : month.donations.toLocaleString('en-IN')}</b>{' '}
+          {month.donations === 1 ? 'donation' : 'donations'} received
         </Link>
       </p>
       <div className="admin-overview-grid">
