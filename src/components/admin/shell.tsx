@@ -29,6 +29,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import {ThemeToggle} from '@/components/theme-toggle';
+import {QuickSearch} from '@/components/admin/quick-search';
 type NavItem = {href: string; label: string; Icon: LucideIcon; adminOnly?: boolean};
 type NavGroup = {label: string; items: NavItem[]; collapsed?: boolean};
 /** Grouped by how often staff use each page: daily work first, rarely-used records last. */
@@ -252,6 +253,7 @@ export function AdminShell({children, name, role}: {children: React.ReactNode; n
           </div>
           <div className="admin-topbar-end">
             <span className="admin-environment">UT Charitable Trust</span>
+            <QuickSearch />
             <AdminLive />
             <ThemeToggle />
             <span className="admin-avatar small">{name.slice(0, 1).toUpperCase()}</span>

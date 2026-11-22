@@ -657,7 +657,7 @@ export function Workspace({
   const params = useSearchParams();
   const router = useRouter();
   const [records, setRecords] = useState(initial);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState((params.get('search') || '').slice(0, 150));
   const [filter, setFilter] = useState(params.get('filter') || '');
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState('newest');
