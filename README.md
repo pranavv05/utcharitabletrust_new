@@ -44,7 +44,7 @@ See [the admin guide](docs/admin-workspace.md) for roles, workflows, publishing,
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the deployment environment before building. Browser-visible variables contain only public project settings. `DATABASE_URL` is used by administrative scripts and must remain server-only. Runtime staff operations use the signed-in Supabase session, not a service-role key.
 
-Deploy from the repository root. Configure the correct site URL and redirect URLs in Supabase Authentication for your deployment.
+Deploy from the repository root. **Deploying does not change the database.** Vercel (or any host) only builds and serves the website; Supabase migrations are applied separately. After pulling new migration files, run `node scripts/apply-pending-migrations.mjs --dry-run` to see what is pending, then `node scripts/apply-pending-migrations.mjs` (needs `DATABASE_URL` and `PGSSLROOTCERT` in `.env.local`). Apply migrations **before** merging code that depends on them: migrations in this repository are additive and keep working with the previous version of the site. Configure the correct site URL and redirect URLs in Supabase Authentication for your deployment.
 
 The baseline migration creates empty legacy tables and public catalogue views. **It does not include the private legacy records.** Those records are already imported in the existing configured database. Do not replay the baseline or a data import over that database. Apply only unapplied incremental migrations after reviewing their history. Fresh projects require a separately reviewed private data import and Supabase Auth/staff setup.
 

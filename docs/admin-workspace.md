@@ -111,7 +111,7 @@ Administrators can cancel a donation or an issued-book entry that was entered by
 - A **donation** can be cancelled while all its copies are still on the shelf and have never been issued. Its copies are archived. Book numbers (UTBN) already assigned are not reused.
 - The entry stays in history marked **Cancelled** (with who cancelled it and why, in the activity log). Date-range reports no longer count it. Anything that has been returned, or whose copies were issued, must be handled by archiving instead.
 
-Migration: `20261122130000_cancel_transactions.sql`. It also lets administrators delete the uploaded files that belonged to deleted website content (storage policies on hosted Supabase). When content is deleted from Website content, its uploaded files are removed if no other content uses them; this is best effort and never undoes the delete.
+Migration: `20261122130000_cancel_transactions.sql`. A later migration, `20261122140000_issue_reference_prefix.sql`, makes new issue references start with `UTC-I-` (older ones keep `UTC-L-`). It also lets administrators delete the uploaded files that belonged to deleted website content (storage policies on hosted Supabase). When content is deleted from Website content, its uploaded files are removed if no other content uses them; this is best effort and never undoes the delete.
 
 ## Live updates and persistence
 
