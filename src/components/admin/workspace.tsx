@@ -1,5 +1,6 @@
 'use client';
 import {trustDate, clampRecordPage} from '@/lib/admin/dates';
+import {ISSUE_DAYS, LATE_FEE_PER_DAY, daysLate, issueDueDate} from '@/lib/admin/policy';
 import {parseDonationCsv} from '@/lib/admin/donation-csv';
 import {PersonChooser} from './person-chooser';
 import {LookupInput} from './lookup-input';
@@ -414,6 +415,7 @@ function IssueForm({onDone}: {onDone: (id: string) => void}) {
   const [books, setBooks] = useState<Row[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [issueDate, setIssueDate] = useState(trustDate());
   const today = trustDate();
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -429,7 +431,6 @@ function IssueForm({onDone}: {onDone: (id: string) => void}) {
         person_id: person[0].id,
         book_ids: books.map((b) => b.id),
         issue_date: f.get('issue_date'),
-        due_date: f.get('due_date'),
       });
       onDone(data.id);
     } catch (e) {
@@ -444,11 +445,26 @@ function IssueForm({onDone}: {onDone: (id: string) => void}) {
       <div className="admin-form-grid">
         <label>
           Issue date
-          <input required type="date" name="issue_date" defaultValue={today} max={today} />
+          <input
+            required
+            type="date"
+            name="issue_date"
+            value={issueDate}
+            max={today}
+            onChange={(e) => setIssueDate(e.target.value)}
+          />
         </label>
         <label>
-          Due date
-          <input required type="date" name="due_date" min={today} />
+          Return on or before
+          <input
+            type="date"
+            value={/^\d{4}-\d{2}-\d{2}$/.test(issueDate) ? issueDueDate(issueDate) : ''}
+            readOnly
+          />
+          <small>
+            Books are issued for {ISSUE_DAYS} days. A late fee of ₹{LATE_FEE_PER_DAY} per day applies after
+            the due date.
+          </small>
         </label>
       </div>
       <RecordPicker
@@ -485,6 +501,9 @@ function LoanDetail({
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [lost, setLost] = useState(false);
+  const [returnDate, setReturnDate] = useState(trustDate());
+  // null means the suggested late fee is shown; once staff type a value, theirs is kept.
+  const [penaltyText, setPenaltyText] = useState<string | null>(null);
   function load() {
     fetch('/api/admin/record?id=' + encodeURIComponent(id))
       .then(async (r) => {
@@ -527,6 +546,7 @@ function LoanDetail({
         lost,
       });
       setSelected([]);
+      setPenaltyText(null);
       load();
       onChanged();
     } catch (e) {
@@ -539,6 +559,8 @@ function LoanDetail({
   const person = (data?.person || {}) as Row;
   const outstanding = data && ['issue', 'partial_return'].includes(String(data.status));
   const isDonation = data?.kind === 'donation';
+  const lateDays = daysLate(data?.endDate, returnDate);
+  const suggestedFee = lateDays * LATE_FEE_PER_DAY * selected.length;
   const cancelled = data?.status === 'cancelled';
   if (!data)
     return (
@@ -631,11 +653,26 @@ function LoanDetail({
             <div className="admin-form-grid">
               <label>
                 Return / loss date
-                <input type="date" name="return_date" required defaultValue={trustDate()} max={trustDate()} />
+                <input
+                  type="date"
+                  name="return_date"
+                  required
+                  value={returnDate}
+                  max={trustDate()}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                />
               </label>
               <label>
                 Manual penalty (₹)
-                <input type="number" name="penalty" min="0" max="1000000" step="0.01" defaultValue="0" />
+                <input
+                  type="number"
+                  name="penalty"
+                  min="0"
+                  max="1000000"
+                  step="0.01"
+                  value={penaltyText ?? String(suggestedFee)}
+                  onChange={(e) => setPenaltyText(e.target.value)}
+                />
               </label>
               <label className="full">
                 Penalty / loss reason
@@ -647,8 +684,11 @@ function LoanDetail({
               selected copies as lost; keep them unavailable.
             </label>
             <p className="admin-form-help">
-              Select a subset for a partial return. Existing issue history is retained. No penalty is
-              calculated automatically.
+              {lateDays > 0
+                ? `This is ${lateDays} day${lateDays === 1 ? '' : 's'} after the due date. The suggested late fee is ₹${LATE_FEE_PER_DAY} per day for each selected book; edit or clear it to change or waive it. `
+                : ''}
+              Select a subset for a partial return. Existing issue history is retained. Late fees are
+              suggested here and recorded only when you save.
             </p>
           </>
         )}

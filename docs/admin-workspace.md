@@ -103,6 +103,12 @@ Administrators manage every public section from **Website content** (add, edit, 
 
 Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (MP4/WebM, 50 MB) are uploaded by the browser straight to storage with a one-time signed link created by an administrator. Uploaded files have public addresses even while attached to drafts. The migration `20261122120000_cms_sections.sql` also raises the storage bucket limit to 50 MB and allows PDF, MP4 and WebM. Permanent delete removes the content record only, not the uploaded file in storage; the activity log keeps a copy of the deleted record.
 
+## Lending policy and receipts
+
+The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).
+
+Receipts (`/admin/receipts/<id>`) are formal A4 documents with a letterhead, borrower details, the books, the terms and conditions in English with a Hindi translation, an acceptance line and signature boxes. Issue receipts include the terms and an ID proof line; return receipts show days late, the late fee and the penalty recorded; donation receipts are a simple acknowledgement (no tax wording); cancelled entries are marked as not valid. The trust's registration number and ISO standard are printed from **Website content → Legal documents** (give a registration document its number) and **ISO certification**; nothing is printed until they are entered there. Please have the Hindi text and the extra clauses (care of the book, personal educational use, bring the receipt, extensions) read by someone at the trust before relying on them.
+
 ## Cancelling a mistaken entry
 
 Administrators can cancel a donation or an issued-book entry that was entered by mistake, from the entry's detail screen. A reason (10 to 500 characters) is required and the cancellation cannot be undone, but nothing is erased:

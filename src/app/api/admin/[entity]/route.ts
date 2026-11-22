@@ -5,6 +5,8 @@ import {staffContext} from '@/lib/supabase/server';
 import {sameOrigin, parsePage, staffAccessSchema, recordActionSchema} from '@/lib/validation';
 import {sections} from '@/lib/admin/config';
 import {plainTerms} from '@/lib/admin/terms';
+import {issueDueDate} from '@/lib/admin/policy';
+import {trustDate} from '@/lib/admin/dates';
 import {orphanedPaths} from '@/lib/admin/media-cleanup';
 export async function GET(request: Request, {params}: {params: Promise<{entity: string}>}) {
   const ctx = await staffContext();
@@ -135,9 +137,17 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
     if (entity === 'delete' && ctx.staff.role !== 'admin')
       return NextResponse.json({message: 'Only an administrator can delete records.'}, {status: 403});
     result = await ctx.db.rpc('admin_' + entity, {p_entity: action.data.entity, p_id: action.data.id});
-  } else if (['donate', 'issue', 'return'].includes(entity))
+  } else if (['donate', 'issue', 'return'].includes(entity)) {
+    // Books are always issued for exactly 365 days, so the due date is set here and any value sent is ignored.
+    if (entity === 'issue') {
+      const issued =
+        typeof body.issue_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.issue_date)
+          ? body.issue_date
+          : trustDate();
+      body.due_date = issueDueDate(issued);
+    }
     result = await ctx.db.rpc('admin_' + entity, {p_data: body});
-  else if (entity === 'submissions')
+  } else if (entity === 'submissions')
     result = await ctx.db.rpc('admin_submission', {p_id: body.id, p_status: body.status});
   else if (['books', 'people', 'members', 'authors', 'classes'].includes(entity))
     result = await ctx.db.rpc('admin_save', {
