@@ -2665,3 +2665,44 @@ html[data-theme='dark'] .admin-login {
   color: inherit;
   font: inherit;
 }
+
+/* Content manager */
+.admin-bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+.admin-media-field {
+  display: grid;
+  gap: 8px;
+}
+.admin-media-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-media-previews img {
+  height: 70px;
+  width: auto;
+  border-radius: 8px;
+  border: 1px solid var(--a-line);
+  object-fit: cover;
+}
+.admin-required {
+  color: var(--a-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+.admin-content-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import {Pause, Play} from 'lucide-react';
 import {gsap, useGSAP} from '@/lib/motion';
+import {useSiteContent} from '@/components/site-content-provider';
+import {IsoBadge} from '@/components/iso-badge';
 const slides = [
   {
     src: '/images/banner.webp',
@@ -24,6 +26,7 @@ const slides = [
   },
 ];
 export function Hero() {
+  const {iso} = useSiteContent();
   const scope = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -122,6 +125,7 @@ export function Hero() {
             Discover our work
           </Link>
         </div>
+        <IsoBadge iso={iso} variant="line" />
       </div>
       <div className="experience-container photo-hero-bottom">
         <a href="#community">Discover what brings us together</a>

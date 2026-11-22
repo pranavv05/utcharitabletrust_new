@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
-import {programmePhotos} from '@/lib/photos';
+import {photosForProgramme} from '@/lib/photos';
+import {ProgrammePhotos} from '@/components/programme-photos';
 import {getSiteContent} from '@/lib/site-content';
 import {TrustImage} from '@/components/ui/trust-image';
 import type {Metadata} from 'next';
@@ -17,7 +18,7 @@ export async function generateMetadata({params}: {params: Promise<{slug: string}
 }
 export default async function Programme({params}: {params: Promise<{slug: string}>}) {
   const {slug} = await params;
-  const {programmes} = await getSiteContent();
+  const {programmes, gallery} = await getSiteContent();
   const p = programmes.find((p) => p.slug === slug);
   if (!p) notFound();
   return (
@@ -46,24 +47,7 @@ export default async function Programme({params}: {params: Promise<{slug: string
                 Explore gallery
               </Link>
             </div>
-            <div className="programme-picture-grid">
-              {programmePhotos(slug)
-                .slice(0, 8)
-                .map((photo) => (
-                  <Link
-                    key={photo.src}
-                    href={'/gallery?photo=' + encodeURIComponent(photo.src)}
-                    aria-label={'View ' + photo.caption}
-                  >
-                    <TrustImage
-                      src={photo.src}
-                      alt={photo.caption}
-                      loading="lazy"
-                      sizes="(max-width:600px) 90vw,30vw"
-                    />
-                  </Link>
-                ))}
-            </div>
+            <ProgrammePhotos photos={photosForProgramme(gallery, slug)} />
           </section>
           <Link href="/our-work" className="text-link">
             Explore all our programmes

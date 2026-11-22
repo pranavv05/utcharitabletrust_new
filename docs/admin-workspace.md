@@ -85,6 +85,24 @@ On **Add donation**, **Scan books with the camera** opens a dialog. Staff take a
 
 Privacy and cost: only the downscaled cover photo is sent to the provider, never donor or borrower data. Each staff member is limited to 30 scans per 10 minutes. ISBN lookups send only the ISBN to the public book databases. A typed ISBN can also be looked up directly. Barcode reading, ISBN validation and the reading service are covered by automated tests; phone camera quality varies, so a blurry photo may need to be retaken.
 
+## Website sections managed from Website content
+
+Administrators manage every public section from **Website content** (add, edit, search, filter, publish, archive and permanently delete):
+
+| Tab | Public page | Notes |
+| --- | --- | --- |
+| News & Media | `/news`, `/news/<slug>` | Date, category, summary, story, cover and extra photographs, a YouTube/Vimeo link or an uploaded short video. Visitors can filter by year, category and search, and sort. |
+| Gallery | `/gallery` | Each photograph can have a year. Select many photographs and use **Set year** to assign it in bulk. Existing photographs start undated. |
+| Our work | `/our-work`, programme pages | Year filters use the years of the photographs linked to each programme. |
+| Team | `/team` | Name, role, photograph and optional bio for each person; visitors can search. |
+| Testimonials | home page and `/testimonials` | Quote, name, role, optional photograph and video; mark some as featured for the home page. |
+| Partners | home strip and `/partners` | Logo, website, description, and a level (principal, gold, silver, supporter) that controls the order. |
+| Legal documents | `/legal`, `/legal/<slug>` | Registration and tax certificates, annual reports (year-wise), policies (written text) and certifications. Upload a PDF or image. `/certificates` redirects here. |
+| Intern colleges | `/interns` | Only the college, city, years and number of interns are shown, never student names. |
+| ISO certification | header, hero, footer, `/legal` | Fill in the standard (for example ISO 9001:2015) and publish. Nothing is shown until it is published. |
+
+Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (MP4/WebM, 50 MB) are uploaded by the browser straight to storage with a one-time signed link created by an administrator. Uploaded files have public addresses even while attached to drafts. The migration `20261122120000_cms_sections.sql` also raises the storage bucket limit to 50 MB and allows PDF, MP4 and WebM. Permanent delete removes the content record only, not the uploaded file in storage; the activity log keeps a copy of the deleted record.
+
 ## Live updates and persistence
 
 Successful writes are acknowledged only after Supabase confirms them. Database transactions protect multi-record operations; failed writes do not display success. Change triggers increment rows in `public.trust_changes`, whose contents are limited to scope, version and timestamp. Only those counters are added to the Realtime publication. Private borrower, membership, audit and submission rows are never replicated to public clients.

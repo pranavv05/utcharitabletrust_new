@@ -68,3 +68,16 @@ test('a missing website_content function falls back, other database errors do no
   assert.equal(isContentNotDeployed({code: '42501'}), false);
   assert.equal(isContentNotDeployed(null), false);
 });
+
+test('large uploads accept only PDFs and short videos within their size limits', async () => {
+  const {validateLargeUpload} = await import('../src/lib/admin/media-upload');
+  assert.equal(validateLargeUpload('application/pdf', 1_000_000).ok, true);
+  assert.equal(validateLargeUpload('video/mp4', 49 * 1024 * 1024).ok, true);
+  assert.equal(validateLargeUpload('application/pdf', 21 * 1024 * 1024).ok, false);
+  assert.equal(validateLargeUpload('video/webm', 51 * 1024 * 1024).ok, false);
+  assert.equal(validateLargeUpload('image/png', 1000).ok, false);
+  assert.equal(validateLargeUpload('text/html', 1000).ok, false);
+  assert.equal(validateLargeUpload('application/pdf', 0).ok, false);
+  assert.equal(validateLargeUpload('application/pdf', 'big').ok, false);
+  assert.equal(validateLargeUpload('constructor', 10).ok, false);
+});
