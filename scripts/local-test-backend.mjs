@@ -19,9 +19,24 @@ const BASE = process.env.PUBLIC_BASE || `http://localhost:${PORT}`;
 const SECRET = 'local-test-secret';
 export const TEST_PASSWORD = 'LocalTest-Password-1';
 const accounts = [
-  {id: '00000000-0000-4000-8000-0000000000a1', email: 'admin@example.test', name: 'Test Administrator', role: 'admin'},
-  {id: '00000000-0000-4000-8000-0000000000a2', email: 'operator@example.test', name: 'Test Operator', role: 'operator'},
-  {id: '00000000-0000-4000-8000-0000000000a3', email: 'viewer@example.test', name: 'Test Viewer', role: 'viewer'},
+  {
+    id: '00000000-0000-4000-8000-0000000000a1',
+    email: 'admin@example.test',
+    name: 'Test Administrator',
+    role: 'admin',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000000a2',
+    email: 'operator@example.test',
+    name: 'Test Operator',
+    role: 'operator',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000000a3',
+    email: 'viewer@example.test',
+    name: 'Test Viewer',
+    role: 'viewer',
+  },
 ];
 const passwords = new Map(accounts.map((a) => [a.email, TEST_PASSWORD]));
 
@@ -31,7 +46,9 @@ const dir = new URL('../supabase/migrations/', import.meta.url);
 await db.exec(
   `CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role BYPASSRLS;CREATE SCHEMA auth;CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;GRANT USAGE ON SCHEMA auth TO authenticated;`,
 );
-for (const name of readdirSync(dir).filter((f) => f.endsWith('.sql') && !f.includes('.private.')).sort())
+for (const name of readdirSync(dir)
+  .filter((f) => f.endsWith('.sql') && !f.includes('.private.'))
+  .sort())
   await db.exec(readFileSync(new URL(name, dir), 'utf8'));
 // The real project stores files under https://<project>.supabase.co; here they live on this server.
 await db.exec(`CREATE OR REPLACE FUNCTION trust_admin.valid_media(url text,kinds text) RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path='' AS $$
@@ -73,15 +90,31 @@ const refreshTokens = new Map();
 function session(account) {
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const user = {
-    id: account.id, aud: 'authenticated', role: 'authenticated', email: account.email,
-    email_confirmed_at: '2026-01-01T00:00:00Z', app_metadata: {provider: 'email'}, user_metadata: {},
-    created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z',
+    id: account.id,
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: account.email,
+    email_confirmed_at: '2026-01-01T00:00:00Z',
+    app_metadata: {provider: 'email'},
+    user_metadata: {},
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
   };
   const refresh = randomUUID();
   refreshTokens.set(refresh, account.id);
   return {
-    access_token: sign({sub: account.id, email: account.email, role: 'authenticated', aud: 'authenticated', exp}),
-    token_type: 'bearer', expires_in: 3600, expires_at: exp, refresh_token: refresh, user,
+    access_token: sign({
+      sub: account.id,
+      email: account.email,
+      role: 'authenticated',
+      aud: 'authenticated',
+      exp,
+    }),
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: exp,
+    refresh_token: refresh,
+    user,
   };
 }
 const quote = (name) => '"' + String(name).replace(/"/g, '""') + '"';
@@ -107,7 +140,8 @@ async function readBody(req) {
 }
 
 // ---------- REST: rpc ----------
-const arrayLiteral = (list) => '{' + list.map((x) => '"' + String(x).replace(/(["\\])/g, '\\$1') + '"').join(',') + '}';
+const arrayLiteral = (list) =>
+  '{' + list.map((x) => '"' + String(x).replace(/(["\\])/g, '\\$1') + '"').join(',') + '}';
 async function rpc(fn, args, role, sub) {
   if (!identifier.test(fn)) return [404, {code: 'PGRST202', message: 'Not found'}];
   const found = (
@@ -129,7 +163,13 @@ async function rpc(fn, args, role, sub) {
     })
     .sort((a, b) => b.pronargs - a.pronargs)[0];
   if (!match)
-    return [404, {code: 'PGRST202', message: `Could not find the function public.${fn}(${keys.join(', ')}) in the schema cache`}];
+    return [
+      404,
+      {
+        code: 'PGRST202',
+        message: `Could not find the function public.${fn}(${keys.join(', ')}) in the schema cache`,
+      },
+    ];
   const params = [];
   const sql = `SELECT public.${quote(fn)}(${keys
     .map((k, i) => {
@@ -151,11 +191,15 @@ async function rpc(fn, args, role, sub) {
 function parseOr(text) {
   const inner = text.replace(/^\(/, '').replace(/\)$/, '');
   const parts = [];
-  let depth = 0, cur = '';
+  let depth = 0,
+    cur = '';
   for (const ch of inner) {
     if (ch === '(') depth++;
     if (ch === ')') depth--;
-    if (ch === ',' && depth === 0) { parts.push(cur); cur = ''; } else cur += ch;
+    if (ch === ',' && depth === 0) {
+      parts.push(cur);
+      cur = '';
+    } else cur += ch;
   }
   parts.push(cur);
   return parts;
@@ -168,30 +212,69 @@ function condition(column, expr, params) {
   params.push(value);
   const p = '$' + params.length;
   switch (op) {
-    case 'eq': return `${col}::text = ${p}`;
-    case 'neq': return `${col}::text <> ${p}`;
-    case 'ilike': return `${col}::text ILIKE ${p}`;
-    case 'like': return `${col}::text LIKE ${p}`;
-    case 'gt': return `${col} > ${p}`;
-    case 'gte': return `${col} >= ${p}`;
-    case 'lt': return `${col} < ${p}`;
-    case 'lte': return `${col} <= ${p}`;
-    case 'is': params.pop(); return `${col} IS ${value === 'null' ? 'NULL' : value === 'true' ? 'TRUE' : 'FALSE'}`;
-    default: throw Error('Unsupported filter ' + op);
+    case 'eq':
+      return `${col}::text = ${p}`;
+    case 'neq':
+      return `${col}::text <> ${p}`;
+    case 'ilike':
+      return `${col}::text ILIKE ${p}`;
+    case 'like':
+      return `${col}::text LIKE ${p}`;
+    case 'gt':
+      return `${col} > ${p}`;
+    case 'gte':
+      return `${col} >= ${p}`;
+    case 'lt':
+      return `${col} < ${p}`;
+    case 'lte':
+      return `${col} <= ${p}`;
+    case 'is':
+      params.pop();
+      return `${col} IS ${value === 'null' ? 'NULL' : value === 'true' ? 'TRUE' : 'FALSE'}`;
+    default:
+      throw Error('Unsupported filter ' + op);
   }
 }
 async function table(name, url, req, role, sub) {
   if (!identifier.test(name)) return [404, {message: 'Not found'}];
   const params = [];
   const where = [];
-  let order = '', limit = '', offset = '';
+  let order = '',
+    limit = '',
+    offset = '';
   let columns = '*';
   for (const [key, raw] of url.searchParams) {
-    if (key === 'select') columns = raw === '*' ? '*' : raw.split(',').map((c) => quote(c.trim().split(':')[0])).join(',');
-    else if (key === 'order') order = ' ORDER BY ' + raw.split(',').map((o) => { const [c, d] = o.split('.'); return `${quote(c)} ${d === 'desc' ? 'DESC' : 'ASC'}`; }).join(',');
+    if (key === 'select')
+      columns =
+        raw === '*'
+          ? '*'
+          : raw
+              .split(',')
+              .map((c) => quote(c.trim().split(':')[0]))
+              .join(',');
+    else if (key === 'order')
+      order =
+        ' ORDER BY ' +
+        raw
+          .split(',')
+          .map((o) => {
+            const [c, d] = o.split('.');
+            return `${quote(c)} ${d === 'desc' ? 'DESC' : 'ASC'}`;
+          })
+          .join(',');
     else if (key === 'limit') limit = ` LIMIT ${Number(raw) | 0}`;
     else if (key === 'offset') offset = ` OFFSET ${Number(raw) | 0}`;
-    else if (key === 'or') where.push('(' + parseOr(raw).map((c) => { const [col, ...e] = c.split('.'); return condition(col, e.join('.'), params); }).join(' OR ') + ')');
+    else if (key === 'or')
+      where.push(
+        '(' +
+          parseOr(raw)
+            .map((c) => {
+              const [col, ...e] = c.split('.');
+              return condition(col, e.join('.'), params);
+            })
+            .join(' OR ') +
+          ')',
+      );
     else where.push(condition(key, raw, params));
   }
   const w = where.length ? ' WHERE ' + where.join(' AND ') : '';
@@ -199,14 +282,28 @@ async function table(name, url, req, role, sub) {
   const single = /vnd\.pgrst\.object/.test(req.headers.accept || '');
   try {
     const result = await inRole(role, sub, async (tx) => {
-      const rows = (await tx.query(`SELECT ${columns} FROM public.${quote(name)}${w}${order}${limit}${offset}`, params)).rows;
-      const total = wantsCount ? (await tx.query(`SELECT count(*)::int AS n FROM public.${quote(name)}${w}`, params)).rows[0].n : null;
+      const rows = (
+        await tx.query(`SELECT ${columns} FROM public.${quote(name)}${w}${order}${limit}${offset}`, params)
+      ).rows;
+      const total = wantsCount
+        ? (await tx.query(`SELECT count(*)::int AS n FROM public.${quote(name)}${w}`, params)).rows[0].n
+        : null;
       return {rows, total};
     });
-    const range = result.total === null ? {} : {'Content-Range': `${result.rows.length ? `0-${result.rows.length - 1}` : '*'}/${result.total}`};
+    const range =
+      result.total === null
+        ? {}
+        : {'Content-Range': `${result.rows.length ? `0-${result.rows.length - 1}` : '*'}/${result.total}`};
     if (single) {
       if (result.rows.length !== 1)
-        return [406, {code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned', details: `The result contains ${result.rows.length} rows`}];
+        return [
+          406,
+          {
+            code: 'PGRST116',
+            message: 'JSON object requested, multiple (or no) rows returned',
+            details: `The result contains ${result.rows.length} rows`,
+          },
+        ];
       return [200, result.rows[0], range];
     }
     return [200, result.rows, range];
@@ -221,7 +318,10 @@ const uploadTokens = new Map();
 function parseMultipart(buffer, contentType) {
   const boundary = /boundary=(.+)$/.exec(contentType || '')?.[1];
   if (!boundary) return {data: buffer, type: contentType};
-  const parts = buffer.toString('latin1').split('--' + boundary).slice(1, -1);
+  const parts = buffer
+    .toString('latin1')
+    .split('--' + boundary)
+    .slice(1, -1);
   for (const part of parts) {
     const split = part.indexOf('\r\n\r\n');
     const head = part.slice(0, split);
@@ -263,11 +363,18 @@ createServer(async (req, res) => {
       if (url.searchParams.get('grant_type') === 'refresh_token') {
         const id = refreshTokens.get(body.refresh_token);
         const account = accounts.find((a) => a.id === id);
-        return account ? reply(200, session(account)) : reply(400, {error: 'invalid_grant', error_description: 'Invalid refresh token'});
+        return account
+          ? reply(200, session(account))
+          : reply(400, {error: 'invalid_grant', error_description: 'Invalid refresh token'});
       }
       const account = accounts.find((a) => a.email === String(body.email).toLowerCase());
       if (!account || passwords.get(account.email) !== body.password)
-        return reply(400, {error: 'invalid_grant', error_description: 'Invalid login credentials', code: 400, msg: 'Invalid login credentials'});
+        return reply(400, {
+          error: 'invalid_grant',
+          error_description: 'Invalid login credentials',
+          code: 400,
+          msg: 'Invalid login credentials',
+        });
       return reply(200, session(account));
     }
     if (path === '/auth/v1/user') {
@@ -283,7 +390,10 @@ createServer(async (req, res) => {
 
     // REST
     if (path.startsWith('/rest/v1/rpc/')) {
-      const args = req.method === 'POST' ? JSON.parse((await readBody(req)).toString() || '{}') : Object.fromEntries(url.searchParams);
+      const args =
+        req.method === 'POST'
+          ? JSON.parse((await readBody(req)).toString() || '{}')
+          : Object.fromEntries(url.searchParams);
       const [status, body] = await rpc(path.slice('/rest/v1/rpc/'.length), args, role, sub);
       return reply(status, body);
     }
@@ -298,11 +408,20 @@ createServer(async (req, res) => {
       const [, kind, objectPath] = m;
       if (kind === 'public') {
         const file = files.get(objectPath);
-        return file ? reply(200, file.data, {'Content-Type': file.type}) : reply(404, {message: 'Object not found'});
+        return file
+          ? reply(200, file.data, {'Content-Type': file.type})
+          : reply(404, {message: 'Object not found'});
       }
       if (kind === 'upload/sign' && req.method === 'POST') {
-        const staff = claims && (await serial(() => db.query("SELECT 1 FROM public.staff WHERE user_id=$1 AND active AND role='admin'", [sub]))).rows.length;
-        if (!staff) return reply(403, {message: 'new row violates row-level security policy', statusCode: '403'});
+        const staff =
+          claims &&
+          (
+            await serial(() =>
+              db.query("SELECT 1 FROM public.staff WHERE user_id=$1 AND active AND role='admin'", [sub]),
+            )
+          ).rows.length;
+        if (!staff)
+          return reply(403, {message: 'new row violates row-level security policy', statusCode: '403'});
         const token = randomUUID();
         uploadTokens.set(token, objectPath);
         return reply(200, {url: `/object/upload/sign/trust-media/${objectPath}?token=${token}`});
@@ -315,8 +434,15 @@ createServer(async (req, res) => {
         return reply(200, {Key: 'trust-media/' + objectPath});
       }
       if (!kind && (req.method === 'POST' || req.method === 'PUT')) {
-        const staff = claims && (await serial(() => db.query("SELECT 1 FROM public.staff WHERE user_id=$1 AND active AND role='admin'", [sub]))).rows.length;
-        if (!staff) return reply(403, {message: 'new row violates row-level security policy', statusCode: '403'});
+        const staff =
+          claims &&
+          (
+            await serial(() =>
+              db.query("SELECT 1 FROM public.staff WHERE user_id=$1 AND active AND role='admin'", [sub]),
+            )
+          ).rows.length;
+        if (!staff)
+          return reply(403, {message: 'new row violates row-level security policy', statusCode: '403'});
         storeFile(objectPath, await readBody(req), req.headers['content-type']);
         return reply(200, {Key: 'trust-media/' + objectPath});
       }
@@ -324,9 +450,18 @@ createServer(async (req, res) => {
     if (path === '/storage/v1/object/trust-media' && req.method === 'DELETE') {
       const body = JSON.parse((await readBody(req)).toString() || '{}');
       for (const p of body.prefixes || []) files.delete(p);
-      return reply(200, (body.prefixes || []).map((name) => ({name})));
+      return reply(
+        200,
+        (body.prefixes || []).map((name) => ({name})),
+      );
     }
     if (path === '/__files') return reply(200, [...files.keys()]);
+    if (path === '/__sql' && req.method === 'POST') {
+      // Test hook: run SQL as the database owner (for example to backdate a due date).
+      const {sql} = JSON.parse((await readBody(req)).toString() || '{}');
+      const result = await serial(() => db.query(sql));
+      return reply(200, result.rows);
+    }
     if (path === '/__health') return reply(200, {ok: true});
     return reply(404, {message: 'Not found: ' + path});
   } catch (e) {

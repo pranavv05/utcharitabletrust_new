@@ -10,8 +10,12 @@ import {yearOf} from '@/lib/media';
 
 const PAGE = 25;
 type Data = Record<string, string>;
+const storageBase = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, '') + '/storage/v1/object/public/trust-media/'
+  : '';
 const safeImage = (url: string) =>
   /^\/images\//.test(url) ||
+  (storageBase !== '' && url.startsWith(storageBase)) ||
   /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/trust-media\//.test(url);
 const rowData = (row: Row) => (row.data || {}) as Data;
 const statusLabel: Record<string, string> = {draft: 'Draft', published: 'Published', archived: 'Archived'};

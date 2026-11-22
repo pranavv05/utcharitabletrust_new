@@ -56,3 +56,24 @@ test('column labels are readable and unknown keys are tidied', () => {
   assert.equal(columnLabel('due'), 'Due date');
   assert.equal(columnLabel('some_key'), 'some key');
 });
+
+test('report columns read reference, person, dates, copies, then status', async () => {
+  const {orderColumns} = await import('../src/lib/admin/report-summary');
+  assert.deepEqual(orderColumns(['due', 'date', 'name', 'copies', 'status', 'reference']), [
+    'reference',
+    'name',
+    'date',
+    'due',
+    'copies',
+    'status',
+  ]);
+  assert.deepEqual(orderColumns(['status', 'title', 'utbn', 'date', 'name', 'reference']), [
+    'reference',
+    'name',
+    'date',
+    'utbn',
+    'title',
+    'status',
+  ]);
+  assert.deepEqual(orderColumns(['zzz', 'aaa', 'reference']), ['reference', 'aaa', 'zzz']);
+});

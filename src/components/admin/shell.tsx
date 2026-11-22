@@ -155,7 +155,13 @@ export function AdminShell({children, name, role}: {children: React.ReactNode; n
       setMessage('Unable to sign out. Please try again.');
     }
   }
-  const title = activeNavItem(path, role)?.label || 'Workspace';
+  const title =
+    activeNavItem(path, role)?.label ||
+    (path.startsWith('/admin/receipts')
+      ? 'Receipt'
+      : path.startsWith('/admin/labels')
+        ? 'QR labels'
+        : 'Workspace');
   return (
     <div className="admin-app">
       <aside

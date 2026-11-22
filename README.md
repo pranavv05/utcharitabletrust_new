@@ -50,6 +50,16 @@ The baseline migration creates empty legacy tables and public catalogue views. *
 
 Credentials, account passwords, personal SQL dumps, private data migrations, backups, dependencies and build output are excluded from Git. Website editorial content seeds contain only existing public content. Never commit `.env.local` or generated private import files.
 
+## Testing the whole app locally
+
+`node scripts/local-test-backend.mjs` starts a stand-in for Supabase (Auth, REST, Storage) backed by the real migrations in a throwaway in-memory database, with three test accounts (`admin@`, `operator@` and `viewer@example.test`; the shared test password is at the top of that script). Run the app against it:
+
+```sh
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=local-test-key npm run dev
+```
+
+You can then sign in at `/login` and use every admin screen, including saving, uploading and deleting, without touching any real project. It is for local testing only; Realtime is not provided, so live updates fall back to polling. It emulates Supabase closely enough for this app but is not a replacement for checking on a real project.
+
 ## Verification
 
 ```sh

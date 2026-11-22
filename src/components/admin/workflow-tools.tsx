@@ -244,3 +244,60 @@ export function ApplicationApproval({row, onDone}: {row: Row; onDone: () => void
     </div>
   );
 }
+
+/** Administrators can cancel a donation or issue that was entered by mistake. The record is kept. */
+export function CancelEntry({id, kind, onDone}: {id: string; kind: 'donation' | 'loan'; onDone: () => void}) {
+  const [reason, setReason] = useState(''),
+    [confirmed, setConfirmed] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState('');
+  const noun = kind === 'donation' ? 'donation' : 'issue';
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await send('cancel', {transaction_id: id, reason});
+      onDone();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="admin-cancel-entry">
+      <form className="admin-form" onSubmit={submit}>
+        <h3>Cancel this {noun}</h3>
+        <p className="admin-form-help">
+          {kind === 'donation'
+            ? 'Use this if the donation was entered by mistake. Its copies are archived (only possible while none of them has been issued). The entry stays in history marked Cancelled, and reports no longer count it. Book numbers already assigned are not reused.'
+            : 'Use this if the issue was entered by mistake (only possible while nothing has been returned). The copies go back on the shelf. The entry stays in history marked Cancelled, and reports no longer count it.'}
+        </p>
+        <label>
+          Reason (required)
+          <textarea
+            required
+            minLength={10}
+            maxLength={500}
+            rows={2}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </label>
+        <label className="admin-checkbox-label">
+          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} /> I
+          understand this cannot be undone.
+        </label>
+        {error && (
+          <p role="alert" className="admin-notice error">
+            {error}
+          </p>
+        )}
+        <button className="admin-button danger" disabled={busy || !confirmed || reason.trim().length < 10}>
+          {busy ? 'Cancelling…' : 'Cancel this ' + noun}
+        </button>
+      </form>
+    </section>
+  );
+}

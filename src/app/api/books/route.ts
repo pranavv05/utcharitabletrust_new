@@ -19,7 +19,16 @@ export async function GET(request: Request) {
   if (cls) query = query.eq('class_name', cls.slice(0, 100));
   const order = url.searchParams.get('sort');
   query = query
-    .order(order === 'author' ? 'author' : order === 'class_name' ? 'class_name' : 'utbn', {ascending: true})
+    .order(
+      order === 'title'
+        ? 'title'
+        : order === 'author'
+          ? 'author'
+          : order === 'class_name'
+            ? 'class_name'
+            : 'utbn',
+      {ascending: true},
+    )
     .range((page - 1) * 25, page * 25 - 1);
   const {data, error, count} = await query;
   if (error)

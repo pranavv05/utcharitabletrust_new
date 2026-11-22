@@ -108,3 +108,17 @@ test('only real JPEG, PNG and WebP data URLs are accepted', () => {
   assert.equal(validateImageDataUrl('https://example.com/a.jpg').ok, false);
   assert.equal(validateImageDataUrl(42).ok, false);
 });
+
+test('a failed first request is retried once before a source is given up on', async () => {
+  let calls = 0;
+  const flaky = (async () => {
+    calls += 1;
+    if (calls === 1) throw new Error('connect timeout');
+    return new Response(
+      JSON.stringify({'ISBN:9780306406157': {title: 'Atlas', authors: [{name: 'A. Writer'}]}}),
+    );
+  }) as unknown as typeof fetch;
+  const book = await lookupIsbn('9780306406157', flaky);
+  assert.equal(book?.title, 'Atlas');
+  assert.equal(calls, 2);
+});

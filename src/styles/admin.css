@@ -2706,3 +2706,37 @@ html[data-theme='dark'] .admin-login {
   gap: 8px;
   margin-bottom: 16px;
 }
+
+/* Phones and tablets: comfortable touch targets in the workspace */
+@media (max-width: 900px) {
+  .admin-topbar button,
+  .admin-topbar .admin-search-trigger,
+  .admin-mobile-close,
+  .admin-menu-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .admin-row-action,
+  .admin-archive,
+  .admin-pagination button,
+  .admin-chip,
+  .admin-report-presets button {
+    min-height: 40px;
+    min-width: 40px;
+  }
+  .admin-records-toolbar select,
+  .admin-records-toolbar input {
+    min-height: 44px;
+  }
+}
+@media (max-width: 900px) {
+  .admin-profile button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .admin-record-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+  }
+}

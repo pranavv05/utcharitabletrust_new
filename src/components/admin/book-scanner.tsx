@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
 import {Camera, ImageIcon, X, Check} from 'lucide-react';
 import {LookupInput} from './lookup-input';
 import {readBarcodeIsbn, photoToDataUrl} from '@/lib/admin/barcode';
@@ -67,8 +68,7 @@ export function BookScanner({onAdd, onClose}: {onAdd: (book: ScannedBook) => voi
     }
   }
 
-  async function fromIsbn(e: React.FormEvent) {
-    e.preventDefault();
+  async function fromIsbn() {
     const isbn = normalizeIsbn(isbnText);
     if (!isbn) {
       setError('That is not a valid ISBN. Check the digits.');
@@ -101,7 +101,8 @@ export function BookScanner({onAdd, onClose}: {onAdd: (book: ScannedBook) => voi
     setIsbnText('');
   }
 
-  return (
+  // Rendered outside the donation form so Enter and buttons here can never submit that form.
+  const view = (
     <dialog ref={dialog} className="admin-scanner" aria-label="Scan a book" onClose={onClose}>
       <div className="admin-scanner-head">
         <h3>Scan a book</h3>
@@ -140,7 +141,7 @@ export function BookScanner({onAdd, onClose}: {onAdd: (book: ScannedBook) => voi
           />
         </label>
       </div>
-      <form className="admin-scanner-isbn" onSubmit={fromIsbn}>
+      <div className="admin-scanner-isbn">
         <label>
           Or type the ISBN
           <input
@@ -149,12 +150,23 @@ export function BookScanner({onAdd, onClose}: {onAdd: (book: ScannedBook) => voi
             inputMode="numeric"
             placeholder="978…"
             maxLength={20}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!busy && isbnText.trim()) void fromIsbn();
+              }
+            }}
           />
         </label>
-        <button className="admin-button secondary" disabled={busy || !isbnText.trim()}>
+        <button
+          type="button"
+          className="admin-button secondary"
+          disabled={busy || !isbnText.trim()}
+          onClick={() => void fromIsbn()}
+        >
           Look up
         </button>
-      </form>
+      </div>
       {status && (
         <p role="status" className="admin-scanner-status">
           {status}
@@ -236,4 +248,5 @@ export function BookScanner({onAdd, onClose}: {onAdd: (book: ScannedBook) => voi
       </div>
     </dialog>
   );
+  return createPortal(view, document.body);
 }

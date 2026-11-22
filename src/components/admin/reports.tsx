@@ -2,7 +2,7 @@
 import {trustDate} from '@/lib/admin/dates';
 import {useEffect, useState, useRef} from 'react';
 import {display, type Row} from '@/lib/admin/config';
-import {columnLabel, reportPresets, summarizeReport} from '@/lib/admin/report-summary';
+import {columnLabel, orderColumns, reportPresets, summarizeReport} from '@/lib/admin/report-summary';
 import {PrintButton} from '@/components/admin/print-button';
 export function Reports({canExport}: {canExport: boolean}) {
   const today = trustDate();
@@ -57,7 +57,7 @@ export function Reports({canExport}: {canExport: boolean}) {
     setFilterText('');
     return () => activeRequest.current?.abort();
   }, [kind, from, to]);
-  const keys = report?.rows[0] ? Object.keys(report.rows[0]) : [];
+  const keys = report?.rows[0] ? orderColumns(Object.keys(report.rows[0])) : [];
   const needle = filterText.trim().toLowerCase();
   const shown = report
     ? needle

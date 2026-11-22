@@ -114,3 +114,27 @@ test('without a database the site still lists its certificates and no invented c
   );
   assert.equal(fallbackContent.iso, null);
 });
+
+test('only files that no other record uses are removed with deleted content', async () => {
+  const {mediaPaths, orphanedPaths} = await import('../src/lib/admin/media-cleanup');
+  const base = 'https://abc.supabase.co';
+  const url = (name: string) => `${base}/storage/v1/object/public/trust-media/u1/${name}`;
+  assert.deepEqual(
+    mediaPaths(
+      {image: url('a.png'), photos: `${url('b.png')}\n${url('c.png')}`, logo: '/images/logo.png', title: 'x'},
+      base,
+    ).sort(),
+    ['u1/a.png', 'u1/b.png', 'u1/c.png'],
+  );
+  assert.deepEqual(
+    mediaPaths({image: 'https://evil.example/storage/v1/object/public/trust-media/u1/a.png'}, base),
+    [],
+  );
+  assert.deepEqual(mediaPaths({image: url('../secret.png')}, base), []);
+  assert.deepEqual(mediaPaths({image: url('a.png')}, ''), []);
+  assert.deepEqual(
+    orphanedPaths({image: url('a.png'), file: url('r.pdf')}, [{image: url('a.png')}, null], base),
+    ['u1/r.pdf'],
+  );
+  assert.deepEqual(orphanedPaths(null, [], base), []);
+});

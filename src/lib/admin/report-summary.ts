@@ -81,3 +81,12 @@ const headings: Record<string, string> = {
   title: 'Book title',
 };
 export const columnLabel = (key: string) => headings[key] || key.replaceAll('_', ' ');
+
+const columnOrder = ['reference', 'name', 'date', 'due', 'utbn', 'title', 'copies', 'status'];
+/** Report columns in reading order (reference first); unknown columns follow alphabetically. */
+export const orderColumns = (keys: string[]) =>
+  keys.toSorted((a, b) => {
+    const ia = columnOrder.indexOf(a),
+      ib = columnOrder.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
+  });
