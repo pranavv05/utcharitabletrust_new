@@ -1,4 +1,37 @@
 import {NextResponse} from 'next/server';
 import {staffContext} from '@/lib/supabase/server';
 import {sameOrigin} from '@/lib/validation';
-export async function POST(request:Request){if(!sameOrigin(request))return NextResponse.json({message:'Request not allowed.'},{status:403});const ctx=await staffContext();if(!ctx||ctx.staff.role!=='admin')return NextResponse.json({message:'Administrator access required.'},{status:403});if(Number(request.headers.get('content-length')||0)>5500000)return NextResponse.json({message:'Image must be under 5 MB.'},{status:413});try{const form=await request.formData();const file=form.get('file');if(!(file instanceof File)||file.size>5242880||file.size<12)return NextResponse.json({message:'Choose a JPEG, PNG or WebP image under 5 MB.'},{status:400});const bytes=new Uint8Array(await file.arrayBuffer());const png=bytes.slice(0,8).every((x,i)=>x===[137,80,78,71,13,10,26,10][i]);const jpeg=bytes[0]===255&&bytes[1]===216&&bytes[2]===255;const webp=String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP';const ext=png?'png':jpeg?'jpg':webp?'webp':null;if(!ext)return NextResponse.json({message:'The file is not a supported image.'},{status:400});const path=`${ctx.user.id}/${crypto.randomUUID()}.${ext}`;const {error}=await ctx.db.storage.from('trust-media').upload(path,bytes,{contentType:ext==='jpg'?'image/jpeg':'image/'+ext,upsert:false});if(error)return NextResponse.json({message:'Upload failed. Check the media bucket setup and try again.'},{status:503});return NextResponse.json({url:ctx.db.storage.from('trust-media').getPublicUrl(path).data.publicUrl})}catch{return NextResponse.json({message:'Unable to read that image.'},{status:400})}}
+export async function POST(request: Request) {
+  if (!sameOrigin(request)) return NextResponse.json({message: 'Request not allowed.'}, {status: 403});
+  const ctx = await staffContext();
+  if (!ctx || ctx.staff.role !== 'admin')
+    return NextResponse.json({message: 'Administrator access required.'}, {status: 403});
+  if (Number(request.headers.get('content-length') || 0) > 5500000)
+    return NextResponse.json({message: 'Image must be under 5 MB.'}, {status: 413});
+  try {
+    const form = await request.formData();
+    const file = form.get('file');
+    if (!(file instanceof File) || file.size > 5242880 || file.size < 12)
+      return NextResponse.json({message: 'Choose a JPEG, PNG or WebP image under 5 MB.'}, {status: 400});
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const png = bytes.slice(0, 8).every((x, i) => x === [137, 80, 78, 71, 13, 10, 26, 10][i]);
+    const jpeg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+    const webp =
+      String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' &&
+      String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
+    const ext = png ? 'png' : jpeg ? 'jpg' : webp ? 'webp' : null;
+    if (!ext) return NextResponse.json({message: 'The file is not a supported image.'}, {status: 400});
+    const path = `${ctx.user.id}/${crypto.randomUUID()}.${ext}`;
+    const {error} = await ctx.db.storage
+      .from('trust-media')
+      .upload(path, bytes, {contentType: ext === 'jpg' ? 'image/jpeg' : 'image/' + ext, upsert: false});
+    if (error)
+      return NextResponse.json(
+        {message: 'Upload failed. Check the media bucket setup and try again.'},
+        {status: 503},
+      );
+    return NextResponse.json({url: ctx.db.storage.from('trust-media').getPublicUrl(path).data.publicUrl});
+  } catch {
+    return NextResponse.json({message: 'Unable to read that image.'}, {status: 400});
+  }
+}

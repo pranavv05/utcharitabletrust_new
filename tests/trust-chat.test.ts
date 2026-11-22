@@ -1,11 +1,66 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {programmes,gallery} from '../src/lib/content';
+import {programmes, gallery} from '../src/lib/content';
 import team from '../src/lib/team.json';
 import {guideReply} from '../src/lib/trust-chat';
 import {groqReply} from '../src/lib/groq-chat';
-const site={programmes,gallery,team,announcements:[]};
-test('trust guide returns book-bank information with usable local links',()=>{const r=guideReply('How can I donate books?',site);assert.equal(r.mode,'guide');assert.ok(r.message.includes('book bank'));assert.ok(r.links.some(l=>l.href==='/book-bank'));assert.ok(!r.message.includes('reserved'))});
-test('contact guide uses WhatsApp and Gmail destinations and admits its scope',()=>{const r=guideReply('What is the contact phone number?',site);assert.ok(r.links.some(l=>l.href.startsWith('https://wa.me/919712968582')));assert.ok(r.links.some(l=>l.href.startsWith('https://mail.google.com/')));assert.ok(guideReply('Explain quantum mechanics',site).message.includes('currently help'))});
-test('Groq receives server credentials and only bounded text generation settings',async()=>{let called=false;const fakeFetch:typeof fetch=async(url,init)=>{called=true;assert.equal(url,'https://api.groq.com/openai/v1/chat/completions');assert.equal((init!.headers as Record<string,string>).Authorization,'Bearer test-only-placeholder');const body=JSON.parse(init!.body as string);assert.equal(body.model,'openai/gpt-oss-20b');assert.equal(body.messages[0].role,'system');assert.ok(body.messages[0].content.includes('published test context'));assert.equal(body.messages[1].content,'Hello');assert.equal(body.include_reasoning,false);assert.equal(body.max_completion_tokens,1200);assert.equal(body.tools,undefined);return Response.json({choices:[{message:{content:'Hello from the trust.'}}]})};assert.equal(await groqReply([{role:'user',content:'Hello'}],'published test context',{apiKey:'test-only-placeholder',model:'openai/gpt-oss-20b',fetchImpl:fakeFetch}),'Hello from the trust.');assert.ok(called)});
-test('Groq failures and empty messages are surfaced for a truthful guide fallback',async()=>{await assert.rejects(()=>groqReply([{role:'user',content:'Hello'}],'context',{apiKey:'test-only-placeholder',model:'test',fetchImpl:async()=>new Response('',{status:429})}),/Provider unavailable/);await assert.rejects(()=>groqReply([{role:'user',content:'Hello'}],'context',{apiKey:'test-only-placeholder',model:'test',fetchImpl:async()=>Response.json({choices:[]})}),/Empty reply/)});
+const site = {programmes, gallery, team, announcements: []};
+test('trust guide returns book-bank information with usable local links', () => {
+  const r = guideReply('How can I donate books?', site);
+  assert.equal(r.mode, 'guide');
+  assert.ok(r.message.includes('book bank'));
+  assert.ok(r.links.some((l) => l.href === '/book-bank'));
+  assert.ok(!r.message.includes('reserved'));
+});
+test('contact guide uses WhatsApp and Gmail destinations and admits its scope', () => {
+  const r = guideReply('What is the contact phone number?', site);
+  assert.ok(r.links.some((l) => l.href.startsWith('https://wa.me/919712968582')));
+  assert.ok(r.links.some((l) => l.href.startsWith('https://mail.google.com/')));
+  assert.ok(guideReply('Explain quantum mechanics', site).message.includes('currently help'));
+});
+test('Groq receives server credentials and only bounded text generation settings', async () => {
+  let called = false;
+  const fakeFetch: typeof fetch = async (url, init) => {
+    called = true;
+    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
+    assert.equal((init!.headers as Record<string, string>).Authorization, 'Bearer test-only-placeholder');
+    const body = JSON.parse(init!.body as string);
+    assert.equal(body.model, 'openai/gpt-oss-20b');
+    assert.equal(body.messages[0].role, 'system');
+    assert.ok(body.messages[0].content.includes('published test context'));
+    assert.equal(body.messages[1].content, 'Hello');
+    assert.equal(body.include_reasoning, false);
+    assert.equal(body.max_completion_tokens, 1200);
+    assert.equal(body.tools, undefined);
+    return Response.json({choices: [{message: {content: 'Hello from the trust.'}}]});
+  };
+  assert.equal(
+    await groqReply([{role: 'user', content: 'Hello'}], 'published test context', {
+      apiKey: 'test-only-placeholder',
+      model: 'openai/gpt-oss-20b',
+      fetchImpl: fakeFetch,
+    }),
+    'Hello from the trust.',
+  );
+  assert.ok(called);
+});
+test('Groq failures and empty messages are surfaced for a truthful guide fallback', async () => {
+  await assert.rejects(
+    () =>
+      groqReply([{role: 'user', content: 'Hello'}], 'context', {
+        apiKey: 'test-only-placeholder',
+        model: 'test',
+        fetchImpl: async () => new Response('', {status: 429}),
+      }),
+    /Provider unavailable/,
+  );
+  await assert.rejects(
+    () =>
+      groqReply([{role: 'user', content: 'Hello'}], 'context', {
+        apiKey: 'test-only-placeholder',
+        model: 'test',
+        fetchImpl: async () => Response.json({choices: []}),
+      }),
+    /Empty reply/,
+  );
+});

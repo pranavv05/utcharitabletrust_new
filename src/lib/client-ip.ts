@@ -9,6 +9,10 @@ export function clientIp(headers: Pick<Headers, 'get'>): string {
     const value = headers.get(name)?.split(',')[0]?.trim();
     if (value) return value.slice(0, 64);
   }
-  const forwarded = headers.get('x-forwarded-for')?.split(',').map(part => part.trim()).filter(Boolean);
+  const forwarded = headers
+    .get('x-forwarded-for')
+    ?.split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
   return forwarded?.length ? forwarded[forwarded.length - 1].slice(0, 64) : 'unknown';
 }

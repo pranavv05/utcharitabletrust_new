@@ -1,9 +1,41 @@
 /* Photographs are shown whole (never cropped) on a soft blurred backdrop of themselves. */
-.fit-backdrop{object-fit:cover;filter:blur(14px) saturate(1.15) brightness(1.02);transform:scale(1.25);opacity:.85;pointer-events:none}
-.fit-main{object-fit:contain!important;object-position:center!important}
-.context-photo,.horizontal-photo,.programme-slide-photo,.voice-image,.programme-photo{position:relative;overflow:hidden;background:var(--panel,#eef3ef)}
-.programme-photo{width:100%}
-.photo-hero-slide .fit-backdrop{filter:blur(28px) saturate(1.1) brightness(.8);transform:scale(1.3);opacity:1}
-.photo-hero-slide .fit-main{object-position:right center!important}
-@media(max-width:899px){.photo-hero-slide .fit-main{object-position:center 30%!important}}
-.programme-card:hover .programme-photo .fit-backdrop,.horizontal-moment:hover .fit-backdrop{transform:scale(1.25)}
+.fit-backdrop {
+  object-fit: cover;
+  filter: blur(14px) saturate(1.15) brightness(1.02);
+  transform: scale(1.25);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.fit-main {
+  object-fit: contain !important;
+  object-position: center !important;
+}
+.context-photo,
+.horizontal-photo,
+.programme-slide-photo,
+.voice-image,
+.programme-photo {
+  position: relative;
+  overflow: hidden;
+  background: var(--panel, #eef3ef);
+}
+.programme-photo {
+  width: 100%;
+}
+.photo-hero-slide .fit-backdrop {
+  filter: blur(28px) saturate(1.1) brightness(0.8);
+  transform: scale(1.3);
+  opacity: 1;
+}
+.photo-hero-slide .fit-main {
+  object-position: right center !important;
+}
+@media (max-width: 899px) {
+  .photo-hero-slide .fit-main {
+    object-position: center 30% !important;
+  }
+}
+.programme-card:hover .programme-photo .fit-backdrop,
+.horizontal-moment:hover .fit-backdrop {
+  transform: scale(1.25);
+}

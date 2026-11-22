@@ -35,7 +35,10 @@ test('limiter fails closed instead of growing past maxKeys', () => {
 });
 
 test('clientIp prefers edge headers and never trusts the left-most forwarded address', () => {
-  assert.equal(clientIp(new Headers({'x-vercel-forwarded-for': '1.1.1.1', 'x-forwarded-for': '6.6.6.6, 2.2.2.2'})), '1.1.1.1');
+  assert.equal(
+    clientIp(new Headers({'x-vercel-forwarded-for': '1.1.1.1', 'x-forwarded-for': '6.6.6.6, 2.2.2.2'})),
+    '1.1.1.1',
+  );
   assert.equal(clientIp(new Headers({'x-forwarded-for': '6.6.6.6, 2.2.2.2'})), '2.2.2.2');
   assert.equal(clientIp(new Headers()), 'unknown');
 });
@@ -48,7 +51,9 @@ test('turnstile is skipped without a secret and enforced with one', async () => 
     assert.equal(await verifyTurnstile(undefined, '1.1.1.1'), false);
     const ok = (async () => new Response(JSON.stringify({success: true}))) as unknown as typeof fetch;
     const bad = (async () => new Response(JSON.stringify({success: false}))) as unknown as typeof fetch;
-    const down = (async () => { throw new Error('offline'); }) as unknown as typeof fetch;
+    const down = (async () => {
+      throw new Error('offline');
+    }) as unknown as typeof fetch;
     assert.equal(await verifyTurnstile('token', '1.1.1.1', ok), true);
     assert.equal(await verifyTurnstile('token', '1.1.1.1', bad), false);
     assert.equal(await verifyTurnstile('token', '1.1.1.1', down), false);

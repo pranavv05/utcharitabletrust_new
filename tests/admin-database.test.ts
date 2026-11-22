@@ -2,149 +2,540 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
-const baseline=readFileSync(new URL('../supabase/migrations/20261120000000_legacy_trust_baseline.sql',import.meta.url),'utf8');
-const migration=readFileSync(new URL('../supabase/migrations/20261121020000_admin_workspace.sql',import.meta.url),'utf8');
-test('staff permissions and book lifecycle retain original issue history',async()=>{
- const db=new PGlite();const admin='00000000-0000-4000-8000-000000000001';const viewer='00000000-0000-4000-8000-000000000002';
- try{
- await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role BYPASSRLS;CREATE SCHEMA auth;CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;GRANT USAGE ON SCHEMA auth TO authenticated;`);
- await db.exec(baseline);await db.exec(migration);await db.exec(readFileSync(new URL('../supabase/migrations/20261121030000_admin_sorting.sql',import.meta.url),'utf8'));
- for(const name of ['20261122000000_admin_workflows.sql','20261122010000_website_content.sql','20261122020000_content_seed.sql','20261122030000_transaction_classification.sql','20261122040000_staff_refresh.sql','20261122050000_exact_copy_search.sql','20261122060000_public_photo_archive.sql','20261122070000_contact_topics.sql','20261122080000_admin_business_timezone.sql','20261122090000_historical_return_reports.sql','20261122100000_submission_abuse_limits.sql'])await db.exec(readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
- const publicPhotos=(await db.query<{data:{image:string;description:string;link:string}}>("SELECT data FROM trust_admin.site_content WHERE kind='gallery' AND slug LIKE 'photo-%'")).rows;
- assert.equal(publicPhotos.length,147);assert.ok(publicPhotos.every(p=>p.data.image.startsWith('/images/')&&p.data.description.length>60&&p.data.link.startsWith('/')));
- await db.exec(readFileSync(new URL('../supabase/migrations/20261122060000_public_photo_archive.sql',import.meta.url),'utf8'));
- assert.equal((await db.query<{n:number}>("SELECT count(*)::int AS n FROM trust_admin.site_content WHERE kind='gallery'")).rows[0].n,159);
- const timezoneFunctions=(await db.query<{proname:string;proconfig:string[]}>("SELECT proname,proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND proname IN ('admin_donate','admin_issue','admin_return','admin_renew','admin_correct','admin_overview','admin_list','admin_report')")).rows;
- assert.equal(timezoneFunctions.length,8);assert.ok(timezoneFunctions.every(f=>f.proconfig.includes('TimeZone=Asia/Kolkata')));
- // A UTC connection must accept today's India date, including the midnight boundary.
- await db.exec("SET TIME ZONE 'UTC'");
- const rpc=async(name:string,args:unknown[])=>{const r=await db.query<Record<string,unknown>>(`SELECT public.${name}(${args.map((_,i)=>'$'+(i+1)).join(',')}) AS value`,args);return r.rows[0].value};
- await assert.rejects(()=>rpc('admin_overview',[]),/Staff access required/);
- await db.query('INSERT INTO auth.users VALUES($1,$2),($3,$4)',[admin,'admin@example.test',viewer,'viewer@example.test']);
- await db.query("INSERT INTO public.staff(user_id,name,role) VALUES($1,'Test Administrator','admin'),($2,'Test Reader','viewer')",[admin,viewer]);
- await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[admin]);
- const donor=await rpc('admin_save',['people',{name:'Test Donor',email:'donor@example.test',phone:'9876543210',type:'donar'},null,false]);
- const borrower=await rpc('admin_save',['people',{name:'Test Borrower',email:'borrower@example.test',phone:'9876543211',type:'customer'},null,false]);
- const donation=await rpc('admin_donate',[{person_id:donor,books:[{title:'Mathematics',author:'Test Author',class_name:'10'},{title:'Biology',author:'Test Author',class_name:'11'}]}]);
- const exact=await rpc('admin_list',['books','1',1,'active','newest']) as {total:number;rows:{utbn:number}[]};assert.equal(exact.total,1);assert.equal(exact.rows[0].utbn,1);
- const ids=(await db.query<{id:string}>('SELECT id FROM legacy_trust.book_lists ORDER BY utbn')).rows.map(x=>x.id);
+const baseline = readFileSync(
+  new URL('../supabase/migrations/20261120000000_legacy_trust_baseline.sql', import.meta.url),
+  'utf8',
+);
+const migration = readFileSync(
+  new URL('../supabase/migrations/20261121020000_admin_workspace.sql', import.meta.url),
+  'utf8',
+);
+test('staff permissions and book lifecycle retain original issue history', async () => {
+  const db = new PGlite();
+  const admin = '00000000-0000-4000-8000-000000000001';
+  const viewer = '00000000-0000-4000-8000-000000000002';
+  try {
+    await db.exec(
+      `CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role BYPASSRLS;CREATE SCHEMA auth;CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;GRANT USAGE ON SCHEMA auth TO authenticated;`,
+    );
+    await db.exec(baseline);
+    await db.exec(migration);
+    await db.exec(
+      readFileSync(
+        new URL('../supabase/migrations/20261121030000_admin_sorting.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    for (const name of [
+      '20261122000000_admin_workflows.sql',
+      '20261122010000_website_content.sql',
+      '20261122020000_content_seed.sql',
+      '20261122030000_transaction_classification.sql',
+      '20261122040000_staff_refresh.sql',
+      '20261122050000_exact_copy_search.sql',
+      '20261122060000_public_photo_archive.sql',
+      '20261122070000_contact_topics.sql',
+      '20261122080000_admin_business_timezone.sql',
+      '20261122090000_historical_return_reports.sql',
+      '20261122100000_submission_abuse_limits.sql',
+    ])
+      await db.exec(readFileSync(new URL('../supabase/migrations/' + name, import.meta.url), 'utf8'));
+    const publicPhotos = (
+      await db.query<{data: {image: string; description: string; link: string}}>(
+        "SELECT data FROM trust_admin.site_content WHERE kind='gallery' AND slug LIKE 'photo-%'",
+      )
+    ).rows;
+    assert.equal(publicPhotos.length, 147);
+    assert.ok(
+      publicPhotos.every(
+        (p) =>
+          p.data.image.startsWith('/images/') &&
+          p.data.description.length > 60 &&
+          p.data.link.startsWith('/'),
+      ),
+    );
+    await db.exec(
+      readFileSync(
+        new URL('../supabase/migrations/20261122060000_public_photo_archive.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    assert.equal(
+      (
+        await db.query<{n: number}>(
+          "SELECT count(*)::int AS n FROM trust_admin.site_content WHERE kind='gallery'",
+        )
+      ).rows[0].n,
+      159,
+    );
+    const timezoneFunctions = (
+      await db.query<{proname: string; proconfig: string[]}>(
+        "SELECT proname,proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND proname IN ('admin_donate','admin_issue','admin_return','admin_renew','admin_correct','admin_overview','admin_list','admin_report')",
+      )
+    ).rows;
+    assert.equal(timezoneFunctions.length, 8);
+    assert.ok(timezoneFunctions.every((f) => f.proconfig.includes('TimeZone=Asia/Kolkata')));
+    // A UTC connection must accept today's India date, including the midnight boundary.
+    await db.exec("SET TIME ZONE 'UTC'");
+    const rpc = async (name: string, args: unknown[]) => {
+      const r = await db.query<Record<string, unknown>>(
+        `SELECT public.${name}(${args.map((_, i) => '$' + (i + 1)).join(',')}) AS value`,
+        args,
+      );
+      return r.rows[0].value;
+    };
+    await assert.rejects(() => rpc('admin_overview', []), /Staff access required/);
+    await db.query('INSERT INTO auth.users VALUES($1,$2),($3,$4)', [
+      admin,
+      'admin@example.test',
+      viewer,
+      'viewer@example.test',
+    ]);
+    await db.query(
+      "INSERT INTO public.staff(user_id,name,role) VALUES($1,'Test Administrator','admin'),($2,'Test Reader','viewer')",
+      [admin, viewer],
+    );
+    await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [admin]);
+    const donor = await rpc('admin_save', [
+      'people',
+      {name: 'Test Donor', email: 'donor@example.test', phone: '9876543210', type: 'donar'},
+      null,
+      false,
+    ]);
+    const borrower = await rpc('admin_save', [
+      'people',
+      {name: 'Test Borrower', email: 'borrower@example.test', phone: '9876543211', type: 'customer'},
+      null,
+      false,
+    ]);
+    const donation = await rpc('admin_donate', [
+      {
+        person_id: donor,
+        books: [
+          {title: 'Mathematics', author: 'Test Author', class_name: '10'},
+          {title: 'Biology', author: 'Test Author', class_name: '11'},
+        ],
+      },
+    ]);
+    const exact = (await rpc('admin_list', ['books', '1', 1, 'active', 'newest'])) as {
+      total: number;
+      rows: {utbn: number}[];
+    };
+    assert.equal(exact.total, 1);
+    assert.equal(exact.rows[0].utbn, 1);
+    const ids = (
+      await db.query<{id: string}>('SELECT id FROM legacy_trust.book_lists ORDER BY utbn')
+    ).rows.map((x) => x.id);
 
- const beforeBad=(await db.query<{count:number}>('SELECT count(*)::int AS count FROM legacy_trust.book_lists')).rows[0].count;
- await assert.rejects(()=>rpc('admin_donate',[{person_id:donor,books:[{title:'Valid',author:'A',class_name:'10'},{title:'',author:'A',class_name:'10'}]}]),/Every book needs/);
- assert.equal((await db.query<{count:number}>('SELECT count(*)::int AS count FROM legacy_trust.book_lists')).rows[0].count,beforeBad);
- const author=await rpc('admin_save',['authors',{title:'Author One'},null,false]);
- await rpc('admin_save',['authors',{title:'Updated Author',status:'active'},author,false]);
- await assert.rejects(()=>rpc('admin_save',['authors',{title:'updated author'},null,false]),/Title already exists/);
- await rpc('admin_save',['classes',{title:'Class 10'},null,false]);
- await rpc('admin_save',['members',{name:'Member Test',email:'member@example.test',phone:'9876543213',bloodgroup:'O+',city:'Silvassa',purpose:'Volunteering'},null,false]);
- await rpc('admin_save',['authors',{},author,true]);
- assert.equal((await rpc('admin_list',['authors','',1,'inactive','name']) as {total:number}).total,1);
- const due=new Date(Date.now()+86400000*7).toISOString().slice(0,10);
- const indiaDay=(await db.query<{day:string}>("SELECT (now() AT TIME ZONE 'Asia/Kolkata')::date::text AS day")).rows[0].day;
- const loan=await rpc('admin_issue',[{person_id:borrower,book_ids:ids,issue_date:indiaDay,due_date:due}]);
- await assert.rejects(()=>rpc('admin_issue',[{person_id:borrower,book_ids:[ids[0]],due_date:due}]),/no longer available/);
- await assert.rejects(()=>rpc('admin_save',['books',{bookName:'Changed',author:'A',class:'10'},ids[0],false]),/Return the issued/);
+    const beforeBad = (
+      await db.query<{count: number}>('SELECT count(*)::int AS count FROM legacy_trust.book_lists')
+    ).rows[0].count;
+    await assert.rejects(
+      () =>
+        rpc('admin_donate', [
+          {
+            person_id: donor,
+            books: [
+              {title: 'Valid', author: 'A', class_name: '10'},
+              {title: '', author: 'A', class_name: '10'},
+            ],
+          },
+        ]),
+      /Every book needs/,
+    );
+    assert.equal(
+      (await db.query<{count: number}>('SELECT count(*)::int AS count FROM legacy_trust.book_lists')).rows[0]
+        .count,
+      beforeBad,
+    );
+    const author = await rpc('admin_save', ['authors', {title: 'Author One'}, null, false]);
+    await rpc('admin_save', ['authors', {title: 'Updated Author', status: 'active'}, author, false]);
+    await assert.rejects(
+      () => rpc('admin_save', ['authors', {title: 'updated author'}, null, false]),
+      /Title already exists/,
+    );
+    await rpc('admin_save', ['classes', {title: 'Class 10'}, null, false]);
+    await rpc('admin_save', [
+      'members',
+      {
+        name: 'Member Test',
+        email: 'member@example.test',
+        phone: '9876543213',
+        bloodgroup: 'O+',
+        city: 'Silvassa',
+        purpose: 'Volunteering',
+      },
+      null,
+      false,
+    ]);
+    await rpc('admin_save', ['authors', {}, author, true]);
+    assert.equal(
+      ((await rpc('admin_list', ['authors', '', 1, 'inactive', 'name'])) as {total: number}).total,
+      1,
+    );
+    const due = new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 10);
+    const indiaDay = (
+      await db.query<{day: string}>("SELECT (now() AT TIME ZONE 'Asia/Kolkata')::date::text AS day")
+    ).rows[0].day;
+    const loan = await rpc('admin_issue', [
+      {person_id: borrower, book_ids: ids, issue_date: indiaDay, due_date: due},
+    ]);
+    await assert.rejects(
+      () => rpc('admin_issue', [{person_id: borrower, book_ids: [ids[0]], due_date: due}]),
+      /no longer available/,
+    );
+    await assert.rejects(
+      () => rpc('admin_save', ['books', {bookName: 'Changed', author: 'A', class: '10'}, ids[0], false]),
+      /Return the issued/,
+    );
 
- assert.equal((await rpc('admin_list',['donations','',1,'','newest']) as {total:number}).total,1);
- assert.equal((await rpc('admin_list',['loans','',1,'','newest']) as {total:number}).total,1);
- assert.equal((await rpc('admin_list',['returns',String(1),1,'','newest']) as {total:number}).total,1);
- assert.equal((await rpc('admin_person',[borrower]) as {outstanding:number}).outstanding,1);
- const later=new Date(Date.now()+86400000*14).toISOString().slice(0,10);
- await rpc('admin_renew',[{transaction_id:loan,due_date:later,reason:'Requested by borrower'}]);
- await assert.rejects(()=>rpc('admin_renew',[{transaction_id:loan,due_date:due,reason:'Earlier date'}]),/later due date/);
- await rpc('admin_followup',[{transaction_id:loan,channel:'phone',note:'Borrower confirmed the new due date.'}]);
- assert.equal((await rpc('admin_record',['loans',loan]) as {followups:unknown[]}).followups.length,1);
- // Simulate one historical overlapping issue in this isolated database only.
- const duplicate='00000000-0000-4000-8000-000000000009';
- await db.query(`INSERT INTO legacy_trust.bookings(id,"orderNo","issueDate","endDate",customer_id,status) VALUES($1,'HISTORICAL-DUPLICATE',current_date,current_date,$2,'issue')`,[duplicate,borrower]);
- await db.query(`INSERT INTO legacy_trust.booking_items(id,booking_id,book_id) VALUES('00000000-0000-4000-8000-000000000010',$1,$2)`,[duplicate,ids[0]]);
- assert.equal((await rpc('admin_conflicts',[]) as unknown[]).length,1);
- await assert.rejects(()=>rpc('admin_return',[{transaction_id:loan,book_ids:[ids[0]],penalty:0}]),/Conflicting historical/);
- await rpc('admin_correct',[{book_id:ids[0],kept_loan:loan,reason:'Verified original paper issue register.'}]);
- assert.equal((await rpc('admin_conflicts',[]) as unknown[]).length,0);
- assert.equal((await db.query<{status:string}>('SELECT status FROM legacy_trust.bookings WHERE id=$1',[duplicate])).rows[0].status,'closed_correction');
- assert.equal((await db.query<{status:string}>('SELECT status FROM legacy_trust.book_lists WHERE id=$1',[ids[0]])).rows[0].status,'issue');
- await assert.rejects(()=>rpc('admin_correct',[{book_id:ids[0],kept_loan:loan,reason:'Repeat correction should be refused.'}]),/unresolved conflict/);
- await rpc('admin_return',[{transaction_id:loan,book_ids:[ids[0]],penalty:0}]);
- assert.equal((await db.query<{status:string}>('SELECT status FROM legacy_trust.bookings WHERE id=$1',[loan])).rows[0].status,'partial_return');
- await assert.rejects(()=>rpc('admin_return',[{transaction_id:loan,book_ids:[ids[0]],penalty:0}]),/not outstanding/);
- await rpc('admin_return',[{transaction_id:loan,book_ids:[ids[1]],penalty:50,reason:'Manual replacement charge',lost:true}]);
- assert.equal((await db.query<{status:string}>('SELECT status FROM legacy_trust.book_lists WHERE id=$1',[ids[1]])).rows[0].status,'lost');
- assert.equal((await db.query<{count:number}>('SELECT count(*)::int AS count FROM legacy_trust.booking_items WHERE booking_id=$1',[loan])).rows[0].count,2);
- assert.equal((await rpc('admin_record',['loans',donation]) as {items:unknown[]}).items.length,2);
- assert.equal((await rpc('admin_list',['books','Biology',1,'lost','name']) as {total:number}).total,1);
- await assert.rejects(()=>rpc('admin_set_staff',['admin@example.test','Admin','viewer',true]),/cannot remove your own/);
+    assert.equal(((await rpc('admin_list', ['donations', '', 1, '', 'newest'])) as {total: number}).total, 1);
+    assert.equal(((await rpc('admin_list', ['loans', '', 1, '', 'newest'])) as {total: number}).total, 1);
+    assert.equal(
+      ((await rpc('admin_list', ['returns', String(1), 1, '', 'newest'])) as {total: number}).total,
+      1,
+    );
+    assert.equal(((await rpc('admin_person', [borrower])) as {outstanding: number}).outstanding, 1);
+    const later = new Date(Date.now() + 86400000 * 14).toISOString().slice(0, 10);
+    await rpc('admin_renew', [{transaction_id: loan, due_date: later, reason: 'Requested by borrower'}]);
+    await assert.rejects(
+      () => rpc('admin_renew', [{transaction_id: loan, due_date: due, reason: 'Earlier date'}]),
+      /later due date/,
+    );
+    await rpc('admin_followup', [
+      {transaction_id: loan, channel: 'phone', note: 'Borrower confirmed the new due date.'},
+    ]);
+    assert.equal(
+      ((await rpc('admin_record', ['loans', loan])) as {followups: unknown[]}).followups.length,
+      1,
+    );
+    // Simulate one historical overlapping issue in this isolated database only.
+    const duplicate = '00000000-0000-4000-8000-000000000009';
+    await db.query(
+      `INSERT INTO legacy_trust.bookings(id,"orderNo","issueDate","endDate",customer_id,status) VALUES($1,'HISTORICAL-DUPLICATE',current_date,current_date,$2,'issue')`,
+      [duplicate, borrower],
+    );
+    await db.query(
+      `INSERT INTO legacy_trust.booking_items(id,booking_id,book_id) VALUES('00000000-0000-4000-8000-000000000010',$1,$2)`,
+      [duplicate, ids[0]],
+    );
+    assert.equal(((await rpc('admin_conflicts', [])) as unknown[]).length, 1);
+    await assert.rejects(
+      () => rpc('admin_return', [{transaction_id: loan, book_ids: [ids[0]], penalty: 0}]),
+      /Conflicting historical/,
+    );
+    await rpc('admin_correct', [
+      {book_id: ids[0], kept_loan: loan, reason: 'Verified original paper issue register.'},
+    ]);
+    assert.equal(((await rpc('admin_conflicts', [])) as unknown[]).length, 0);
+    assert.equal(
+      (await db.query<{status: string}>('SELECT status FROM legacy_trust.bookings WHERE id=$1', [duplicate]))
+        .rows[0].status,
+      'closed_correction',
+    );
+    assert.equal(
+      (await db.query<{status: string}>('SELECT status FROM legacy_trust.book_lists WHERE id=$1', [ids[0]]))
+        .rows[0].status,
+      'issue',
+    );
+    await assert.rejects(
+      () =>
+        rpc('admin_correct', [
+          {book_id: ids[0], kept_loan: loan, reason: 'Repeat correction should be refused.'},
+        ]),
+      /unresolved conflict/,
+    );
+    await rpc('admin_return', [{transaction_id: loan, book_ids: [ids[0]], penalty: 0}]);
+    assert.equal(
+      (await db.query<{status: string}>('SELECT status FROM legacy_trust.bookings WHERE id=$1', [loan]))
+        .rows[0].status,
+      'partial_return',
+    );
+    await assert.rejects(
+      () => rpc('admin_return', [{transaction_id: loan, book_ids: [ids[0]], penalty: 0}]),
+      /not outstanding/,
+    );
+    await rpc('admin_return', [
+      {
+        transaction_id: loan,
+        book_ids: [ids[1]],
+        penalty: 50,
+        reason: 'Manual replacement charge',
+        lost: true,
+      },
+    ]);
+    assert.equal(
+      (await db.query<{status: string}>('SELECT status FROM legacy_trust.book_lists WHERE id=$1', [ids[1]]))
+        .rows[0].status,
+      'lost',
+    );
+    assert.equal(
+      (
+        await db.query<{count: number}>(
+          'SELECT count(*)::int AS count FROM legacy_trust.booking_items WHERE booking_id=$1',
+          [loan],
+        )
+      ).rows[0].count,
+      2,
+    );
+    assert.equal(((await rpc('admin_record', ['loans', donation])) as {items: unknown[]}).items.length, 2);
+    assert.equal(
+      ((await rpc('admin_list', ['books', 'Biology', 1, 'lost', 'name'])) as {total: number}).total,
+      1,
+    );
+    await assert.rejects(
+      () => rpc('admin_set_staff', ['admin@example.test', 'Admin', 'viewer', true]),
+      /cannot remove your own/,
+    );
 
- await rpc('submit_request',[{kind:'contact',name:'Contact Test',email:'contact-test@example.test',phone:'',subject:'Donate essentials',message:'I would like to donate books.'}]);
- assert.equal((await db.query<{phone:string}>("SELECT phone FROM trust_admin.submissions WHERE email='contact-test@example.test'")).rows[0].phone,'');
- await assert.rejects(()=>rpc('submit_request',[{kind:'contact',name:'Contact Test',email:'invalid-contact@example.test',phone:'',subject:'Arbitrary subject',message:'I would like to donate books.'}]),/Choose how/);
- await assert.rejects(()=>rpc('submit_request',[{kind:'membership',name:'Member Test',email:'missing-phone@example.test',phone:'',city:'Silvassa',message:'I would like to volunteer.'}]),/Invalid submission/);
- const application={kind:'membership',name:'Approved Member',email:'approved@example.test',phone:'9876543218',city:'Silvassa',message:'I would like to help with community education.',blood_group:'O+'};
- await rpc('submit_request',[application]);
- const app=(await db.query<{id:string}>("SELECT id FROM trust_admin.submissions WHERE email=$1",[application.email])).rows[0].id;
- const memberId=await rpc('admin_approve',[{submission_id:app}]);assert.equal(await rpc('admin_approve',[{submission_id:app}]),memberId);
- assert.equal((await rpc('admin_application',[app]) as {approved_member_id:string}).approved_member_id,memberId);
- assert.equal((await db.query<{count:number}>("SELECT count(*)::int AS count FROM legacy_trust.members WHERE email=$1",[application.email])).rows[0].count,1);
- // A matching member must be explicitly linked rather than overwritten or duplicated.
- const app2={...application,email:'member@example.test'};await rpc('submit_request',[app2]);
- const app2Id=(await db.query<{id:string}>('SELECT id FROM trust_admin.submissions WHERE email=$1',[app2.email])).rows[0].id;
- await assert.rejects(()=>rpc('admin_approve',[{submission_id:app2Id}]),/already exists/);
- const existing=(await rpc('admin_application',[app2Id]) as {existing_member:{id:string}}).existing_member.id;
- assert.equal(await rpc('admin_approve',[{submission_id:app2Id,existing_member_id:existing}]),existing);
- const date=indiaDay;
- const report=await rpc('admin_report',['returns',date,date]) as {rows:unknown[];total:number};assert.equal(report.total,2);
- // Historical closed loans appear without inventing new ledger entries; tracked returns are not duplicated.
- const historical='00000000-0000-4000-8000-000000000100',tracked='00000000-0000-4000-8000-000000000101',undated='00000000-0000-4000-8000-000000000102';
- for(const [id,reference,returned]of [[historical,'HIST-RETURN',date],[tracked,'TRACKED-RETURN',date],[undated,'UNDATED-RETURN',null]])await db.query('INSERT INTO legacy_trust.bookings(id,"orderNo","issueDate","endDate","returnDate",customer_id,status) VALUES($1,$2,$3,$3,$4,$5,$6)',[id,reference,date,returned,borrower,'return']);
- for(const [id,booking]of [['00000000-0000-4000-8000-000000000110',historical],['00000000-0000-4000-8000-000000000111',tracked]])await db.query('INSERT INTO legacy_trust.booking_items(id,booking_id,book_id) VALUES($1,$2,$3)',[id,booking,ids[0]]);
- await db.query("INSERT INTO trust_admin.loan_returns(booking_id,book_id,disposition,returned_at,actor) VALUES($1,$2,'return',$3,$4)",[tracked,ids[0],date,admin]);
- const historyReport=await rpc('admin_report',['returns',date,date]) as {rows:{reference:string;status:string}[];total:number;undated_historical_returns:number};
- assert.equal(historyReport.total,4);assert.equal(historyReport.rows.filter(r=>r.reference==='TRACKED-RETURN').length,1);assert.equal(historyReport.rows.find(r=>r.reference==='HIST-RETURN')?.status,'historical_return');assert.equal(historyReport.undated_historical_returns,1);
+    await rpc('submit_request', [
+      {
+        kind: 'contact',
+        name: 'Contact Test',
+        email: 'contact-test@example.test',
+        phone: '',
+        subject: 'Donate essentials',
+        message: 'I would like to donate books.',
+      },
+    ]);
+    assert.equal(
+      (
+        await db.query<{phone: string}>(
+          "SELECT phone FROM trust_admin.submissions WHERE email='contact-test@example.test'",
+        )
+      ).rows[0].phone,
+      '',
+    );
+    await assert.rejects(
+      () =>
+        rpc('submit_request', [
+          {
+            kind: 'contact',
+            name: 'Contact Test',
+            email: 'invalid-contact@example.test',
+            phone: '',
+            subject: 'Arbitrary subject',
+            message: 'I would like to donate books.',
+          },
+        ]),
+      /Choose how/,
+    );
+    await assert.rejects(
+      () =>
+        rpc('submit_request', [
+          {
+            kind: 'membership',
+            name: 'Member Test',
+            email: 'missing-phone@example.test',
+            phone: '',
+            city: 'Silvassa',
+            message: 'I would like to volunteer.',
+          },
+        ]),
+      /Invalid submission/,
+    );
+    const application = {
+      kind: 'membership',
+      name: 'Approved Member',
+      email: 'approved@example.test',
+      phone: '9876543218',
+      city: 'Silvassa',
+      message: 'I would like to help with community education.',
+      blood_group: 'O+',
+    };
+    await rpc('submit_request', [application]);
+    const app = (
+      await db.query<{id: string}>('SELECT id FROM trust_admin.submissions WHERE email=$1', [
+        application.email,
+      ])
+    ).rows[0].id;
+    const memberId = await rpc('admin_approve', [{submission_id: app}]);
+    assert.equal(await rpc('admin_approve', [{submission_id: app}]), memberId);
+    assert.equal(
+      ((await rpc('admin_application', [app])) as {approved_member_id: string}).approved_member_id,
+      memberId,
+    );
+    assert.equal(
+      (
+        await db.query<{count: number}>(
+          'SELECT count(*)::int AS count FROM legacy_trust.members WHERE email=$1',
+          [application.email],
+        )
+      ).rows[0].count,
+      1,
+    );
+    // A matching member must be explicitly linked rather than overwritten or duplicated.
+    const app2 = {...application, email: 'member@example.test'};
+    await rpc('submit_request', [app2]);
+    const app2Id = (
+      await db.query<{id: string}>('SELECT id FROM trust_admin.submissions WHERE email=$1', [app2.email])
+    ).rows[0].id;
+    await assert.rejects(() => rpc('admin_approve', [{submission_id: app2Id}]), /already exists/);
+    const existing = ((await rpc('admin_application', [app2Id])) as {existing_member: {id: string}})
+      .existing_member.id;
+    assert.equal(
+      await rpc('admin_approve', [{submission_id: app2Id, existing_member_id: existing}]),
+      existing,
+    );
+    const date = indiaDay;
+    const report = (await rpc('admin_report', ['returns', date, date])) as {rows: unknown[]; total: number};
+    assert.equal(report.total, 2);
+    // Historical closed loans appear without inventing new ledger entries; tracked returns are not duplicated.
+    const historical = '00000000-0000-4000-8000-000000000100',
+      tracked = '00000000-0000-4000-8000-000000000101',
+      undated = '00000000-0000-4000-8000-000000000102';
+    for (const [id, reference, returned] of [
+      [historical, 'HIST-RETURN', date],
+      [tracked, 'TRACKED-RETURN', date],
+      [undated, 'UNDATED-RETURN', null],
+    ])
+      await db.query(
+        'INSERT INTO legacy_trust.bookings(id,"orderNo","issueDate","endDate","returnDate",customer_id,status) VALUES($1,$2,$3,$3,$4,$5,$6)',
+        [id, reference, date, returned, borrower, 'return'],
+      );
+    for (const [id, booking] of [
+      ['00000000-0000-4000-8000-000000000110', historical],
+      ['00000000-0000-4000-8000-000000000111', tracked],
+    ])
+      await db.query('INSERT INTO legacy_trust.booking_items(id,booking_id,book_id) VALUES($1,$2,$3)', [
+        id,
+        booking,
+        ids[0],
+      ]);
+    await db.query(
+      "INSERT INTO trust_admin.loan_returns(booking_id,book_id,disposition,returned_at,actor) VALUES($1,$2,'return',$3,$4)",
+      [tracked, ids[0], date, admin],
+    );
+    const historyReport = (await rpc('admin_report', ['returns', date, date])) as {
+      rows: {reference: string; status: string}[];
+      total: number;
+      undated_historical_returns: number;
+    };
+    assert.equal(historyReport.total, 4);
+    assert.equal(historyReport.rows.filter((r) => r.reference === 'TRACKED-RETURN').length, 1);
+    assert.equal(historyReport.rows.find((r) => r.reference === 'HIST-RETURN')?.status, 'historical_return');
+    assert.equal(historyReport.undated_historical_returns, 1);
 
- await assert.rejects(()=>rpc('admin_report',['returns','2020-01-01',date]),/366 days/);
- const draft={kind:'announcement',slug:'test-announcement',name:'Test announcement',status:'draft',data:{body:'A test announcement.'},sort_order:0};
- const contentId=await rpc('admin_content_save',[draft]);
- assert.ok(!(await rpc('website_content',[]) as {id:string}[]).some(r=>r.id===contentId));
- const content=(await rpc('admin_content',['announcement']) as {id:string;updated_at:string}[]).find(r=>r.id===contentId)!;
- await rpc('admin_content_save',[{...draft,id:contentId,status:'published',expected_updated_at:content.updated_at}]);
- assert.ok((await rpc('website_content',[]) as {id:string}[]).some(r=>r.id===contentId));
- await assert.rejects(()=>rpc('admin_content_save',[{...draft,id:contentId,expected_updated_at:content.updated_at}]),/changed in another session/);
- await assert.rejects(()=>rpc('admin_content_save',[{...draft,slug:'bad-link',data:{link:'//evil.example'}}]),/relative website link/);
- const latestContent=(await rpc('admin_content',['announcement']) as {id:string;updated_at:string}[]).find(r=>r.id===contentId)!;
- await rpc('admin_content_save',[{...draft,id:contentId,status:'archived',expected_updated_at:latestContent.updated_at}]);
- assert.ok(!(await rpc('website_content',[]) as {id:string}[]).some(r=>r.id===contentId));
- assert.ok((await db.query<{count:number}>("SELECT count(*)::int AS count FROM trust_admin.audit WHERE before_data IS NOT NULL AND after_data IS NOT NULL")).rows[0].count>0);
- assert.ok((await db.query<{version:number}>("SELECT version FROM public.trust_changes WHERE scope='catalogue'")).rows[0].version>0);
- // Operators can write operations, but never publish or manage staff.
- const operator='00000000-0000-4000-8000-000000000003';
- await db.query('INSERT INTO auth.users VALUES($1,$2)',[operator,'operator@example.test']);
- await db.query("INSERT INTO public.staff(user_id,name,role) VALUES($1,'Test Operator','operator')",[operator]);
- await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[operator]);
- await rpc('admin_save',['authors',{title:'Operator Author'},null,false]);
- assert.ok(await rpc('admin_report',['loans',date,date]));
- await assert.rejects(()=>rpc('admin_content_save',[draft]),/Administrator access required/);
- await assert.rejects(()=>rpc('admin_set_staff',['operator@example.test','Operator','admin',true]),/Administrator access required/);
- await db.query('UPDATE public.staff SET active=false WHERE user_id=$1',[operator]);
- await assert.rejects(()=>rpc('admin_overview',[]),/Staff access required/);
- await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[viewer]);
- assert.ok(await rpc('admin_overview',[]));await assert.rejects(()=>rpc('admin_save',['authors',{title:'Denied'},null,false]),/Staff access required/);
- await assert.rejects(()=>rpc('admin_team',[]),/Administrator access required/);
- await assert.rejects(()=>rpc('admin_renew',[{transaction_id:loan,due_date:due,reason:'Denied'}]),/Staff access required/);
- await assert.rejects(()=>rpc('admin_content_save',[draft]),/Staff access required/);
- await assert.rejects(()=>rpc('admin_donate',[{}]),/Staff access required/);
- await assert.rejects(()=>rpc('admin_issue',[{}]),/Staff access required/);
- await assert.rejects(()=>rpc('admin_return',[{}]),/Staff access required/);
- await assert.rejects(()=>rpc('admin_conflicts',[]),/Administrator access required/);
- await db.exec('SET ROLE authenticated');await assert.rejects(()=>db.query('SELECT * FROM legacy_trust.customers'),/permission denied/);
- assert.equal((await db.query<{count:number}>('SELECT count(*)::int AS count FROM public.staff')).rows[0].count,1);
- await assert.rejects(()=>db.query("UPDATE public.staff SET role='admin'"),/permission denied/);
- assert.equal((await db.query<{count:number}>("SELECT count(*)::int AS count FROM public.trust_changes WHERE scope='admin'")).rows[0].count,1);
- await db.exec('RESET ROLE');await db.query("SELECT set_config('request.jwt.claim.sub','',false)");
- await db.exec('SET ROLE anon');assert.equal((await db.query<{count:number}>('SELECT count(*)::int AS count FROM public.trust_changes')).rows[0].count,2);assert.ok(await rpc('website_content',[]));await assert.rejects(()=>rpc('admin_overview',[]),/permission denied/);await db.exec('RESET ROLE');
- const payload={kind:'contact',name:'Test Visitor',email:'visitor@example.test',phone:'9876543212',subject:'Volunteer',message:'Please send volunteering information.'};
- await rpc('submit_request',[payload]);await assert.rejects(()=>rpc('submit_request',[payload]),/Please wait/);
- for(let i=0;i<5;i++)await rpc('submit_request',[{...payload,email:`ip-limit-${i}@example.test`,ip_hash:'test-hash'}]);
- await assert.rejects(()=>rpc('submit_request',[{...payload,email:'ip-limit-6@example.test',ip_hash:'test-hash'}]),/Too many requests/);
- await rpc('submit_request',[{...payload,email:'other-ip@example.test',ip_hash:'other-hash'}]);
- }finally{await db.close()}
+    await assert.rejects(() => rpc('admin_report', ['returns', '2020-01-01', date]), /366 days/);
+    const draft = {
+      kind: 'announcement',
+      slug: 'test-announcement',
+      name: 'Test announcement',
+      status: 'draft',
+      data: {body: 'A test announcement.'},
+      sort_order: 0,
+    };
+    const contentId = await rpc('admin_content_save', [draft]);
+    assert.ok(!((await rpc('website_content', [])) as {id: string}[]).some((r) => r.id === contentId));
+    const content = (
+      (await rpc('admin_content', ['announcement'])) as {id: string; updated_at: string}[]
+    ).find((r) => r.id === contentId)!;
+    await rpc('admin_content_save', [
+      {...draft, id: contentId, status: 'published', expected_updated_at: content.updated_at},
+    ]);
+    assert.ok(((await rpc('website_content', [])) as {id: string}[]).some((r) => r.id === contentId));
+    await assert.rejects(
+      () => rpc('admin_content_save', [{...draft, id: contentId, expected_updated_at: content.updated_at}]),
+      /changed in another session/,
+    );
+    await assert.rejects(
+      () => rpc('admin_content_save', [{...draft, slug: 'bad-link', data: {link: '//evil.example'}}]),
+      /relative website link/,
+    );
+    const latestContent = (
+      (await rpc('admin_content', ['announcement'])) as {id: string; updated_at: string}[]
+    ).find((r) => r.id === contentId)!;
+    await rpc('admin_content_save', [
+      {...draft, id: contentId, status: 'archived', expected_updated_at: latestContent.updated_at},
+    ]);
+    assert.ok(!((await rpc('website_content', [])) as {id: string}[]).some((r) => r.id === contentId));
+    assert.ok(
+      (
+        await db.query<{count: number}>(
+          'SELECT count(*)::int AS count FROM trust_admin.audit WHERE before_data IS NOT NULL AND after_data IS NOT NULL',
+        )
+      ).rows[0].count > 0,
+    );
+    assert.ok(
+      (await db.query<{version: number}>("SELECT version FROM public.trust_changes WHERE scope='catalogue'"))
+        .rows[0].version > 0,
+    );
+    // Operators can write operations, but never publish or manage staff.
+    const operator = '00000000-0000-4000-8000-000000000003';
+    await db.query('INSERT INTO auth.users VALUES($1,$2)', [operator, 'operator@example.test']);
+    await db.query("INSERT INTO public.staff(user_id,name,role) VALUES($1,'Test Operator','operator')", [
+      operator,
+    ]);
+    await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [operator]);
+    await rpc('admin_save', ['authors', {title: 'Operator Author'}, null, false]);
+    assert.ok(await rpc('admin_report', ['loans', date, date]));
+    await assert.rejects(() => rpc('admin_content_save', [draft]), /Administrator access required/);
+    await assert.rejects(
+      () => rpc('admin_set_staff', ['operator@example.test', 'Operator', 'admin', true]),
+      /Administrator access required/,
+    );
+    await db.query('UPDATE public.staff SET active=false WHERE user_id=$1', [operator]);
+    await assert.rejects(() => rpc('admin_overview', []), /Staff access required/);
+    await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [viewer]);
+    assert.ok(await rpc('admin_overview', []));
+    await assert.rejects(
+      () => rpc('admin_save', ['authors', {title: 'Denied'}, null, false]),
+      /Staff access required/,
+    );
+    await assert.rejects(() => rpc('admin_team', []), /Administrator access required/);
+    await assert.rejects(
+      () => rpc('admin_renew', [{transaction_id: loan, due_date: due, reason: 'Denied'}]),
+      /Staff access required/,
+    );
+    await assert.rejects(() => rpc('admin_content_save', [draft]), /Staff access required/);
+    await assert.rejects(() => rpc('admin_donate', [{}]), /Staff access required/);
+    await assert.rejects(() => rpc('admin_issue', [{}]), /Staff access required/);
+    await assert.rejects(() => rpc('admin_return', [{}]), /Staff access required/);
+    await assert.rejects(() => rpc('admin_conflicts', []), /Administrator access required/);
+    await db.exec('SET ROLE authenticated');
+    await assert.rejects(() => db.query('SELECT * FROM legacy_trust.customers'), /permission denied/);
+    assert.equal(
+      (await db.query<{count: number}>('SELECT count(*)::int AS count FROM public.staff')).rows[0].count,
+      1,
+    );
+    await assert.rejects(() => db.query("UPDATE public.staff SET role='admin'"), /permission denied/);
+    assert.equal(
+      (
+        await db.query<{count: number}>(
+          "SELECT count(*)::int AS count FROM public.trust_changes WHERE scope='admin'",
+        )
+      ).rows[0].count,
+      1,
+    );
+    await db.exec('RESET ROLE');
+    await db.query("SELECT set_config('request.jwt.claim.sub','',false)");
+    await db.exec('SET ROLE anon');
+    assert.equal(
+      (await db.query<{count: number}>('SELECT count(*)::int AS count FROM public.trust_changes')).rows[0]
+        .count,
+      2,
+    );
+    assert.ok(await rpc('website_content', []));
+    await assert.rejects(() => rpc('admin_overview', []), /permission denied/);
+    await db.exec('RESET ROLE');
+    const payload = {
+      kind: 'contact',
+      name: 'Test Visitor',
+      email: 'visitor@example.test',
+      phone: '9876543212',
+      subject: 'Volunteer',
+      message: 'Please send volunteering information.',
+    };
+    await rpc('submit_request', [payload]);
+    await assert.rejects(() => rpc('submit_request', [payload]), /Please wait/);
+    for (let i = 0; i < 5; i++)
+      await rpc('submit_request', [{...payload, email: `ip-limit-${i}@example.test`, ip_hash: 'test-hash'}]);
+    await assert.rejects(
+      () => rpc('submit_request', [{...payload, email: 'ip-limit-6@example.test', ip_hash: 'test-hash'}]),
+      /Too many requests/,
+    );
+    await rpc('submit_request', [{...payload, email: 'other-ip@example.test', ip_hash: 'other-hash'}]);
+  } finally {
+    await db.close();
+  }
 });

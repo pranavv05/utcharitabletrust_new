@@ -1,4 +1,38 @@
 import {NextResponse} from 'next/server';
 import {serverClient} from '@/lib/supabase/server';
 import {parsePage} from '@/lib/validation';
-export async function GET(request:Request){const db=await serverClient();const url=new URL(request.url);const page=parsePage(url.searchParams.get('page'));if(!db)return NextResponse.json({books:[],total:0,page,configured:false});let query=db.from('catalogue').select('*',{count:'exact'});const search=url.searchParams.get('search')?.trim().slice(0,150);if(search){if(/^\d+$/.test(search))query=query.eq('utbn',Number(search));else{const safe=search.replace(/[,%()\\]/g,' ');query=query.or(`title.ilike.%${safe}%,author.ilike.%${safe}%,class_name.ilike.%${safe}%`);}}const cls=url.searchParams.get('class');if(cls)query=query.eq('class_name',cls.slice(0,100));const order=url.searchParams.get('sort');query=query.order(order==='author'?'author':order==='class_name'?'class_name':'utbn',{ascending:true}).range((page-1)*25,page*25-1);const {data,error,count}=await query;if(error)return NextResponse.json({message:'The catalogue is temporarily unavailable. Please try again.'},{status:503});const {data:classes}=await db.from('catalogue_classes').select('class_name');return NextResponse.json({books:data,total:count,page,classes:classes?.map(x=>x.class_name)||[],configured:true});}
+export async function GET(request: Request) {
+  const db = await serverClient();
+  const url = new URL(request.url);
+  const page = parsePage(url.searchParams.get('page'));
+  if (!db) return NextResponse.json({books: [], total: 0, page, configured: false});
+  let query = db.from('catalogue').select('*', {count: 'exact'});
+  const search = url.searchParams.get('search')?.trim().slice(0, 150);
+  if (search) {
+    if (/^\d+$/.test(search)) query = query.eq('utbn', Number(search));
+    else {
+      const safe = search.replace(/[,%()\\]/g, ' ');
+      query = query.or(`title.ilike.%${safe}%,author.ilike.%${safe}%,class_name.ilike.%${safe}%`);
+    }
+  }
+  const cls = url.searchParams.get('class');
+  if (cls) query = query.eq('class_name', cls.slice(0, 100));
+  const order = url.searchParams.get('sort');
+  query = query
+    .order(order === 'author' ? 'author' : order === 'class_name' ? 'class_name' : 'utbn', {ascending: true})
+    .range((page - 1) * 25, page * 25 - 1);
+  const {data, error, count} = await query;
+  if (error)
+    return NextResponse.json(
+      {message: 'The catalogue is temporarily unavailable. Please try again.'},
+      {status: 503},
+    );
+  const {data: classes} = await db.from('catalogue_classes').select('class_name');
+  return NextResponse.json({
+    books: data,
+    total: count,
+    page,
+    classes: classes?.map((x) => x.class_name) || [],
+    configured: true,
+  });
+}
