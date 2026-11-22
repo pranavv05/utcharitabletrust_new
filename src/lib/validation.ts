@@ -6,4 +6,10 @@ export const donationSchema=z.object({person_id:z.uuid(),books:z.array(z.object(
 export const issueSchema=z.object({person_id:z.uuid(),book_ids:z.array(z.uuid()).min(1).max(100).refine(a=>new Set(a).size===a.length,'Duplicate book IDs are not allowed.'),due_date:z.iso.date()});
 export const returnSchema=z.object({transaction_id:z.uuid(),book_ids:z.array(z.uuid()).min(1).max(100).refine(a=>new Set(a).size===a.length),penalty:z.number().min(0).max(1000000),reason:z.string().max(1000).optional(),lost:z.boolean().optional()});
 export function parsePage(value:string|null){const n=Number(value||1);return Number.isInteger(n)&&n>0?Math.min(n,100000):1;}
-export function sameOrigin(request:Request){const origin=request.headers.get('origin');return !origin||origin===new URL(request.url).origin;}
+export const staffAccessSchema=z.object({email:z.email().max(254),name:z.string().trim().min(1).max(120),role:z.enum(['admin','operator','viewer']),active:z.boolean().optional()});
+/**
+ * CSRF guard for cookie-authenticated writes. Browsers always send Origin on cross-origin POSTs and
+ * Sec-Fetch-Site on modern versions; either one identifying another site rejects the request.
+ * Requests with neither header come from non-browser clients, which have no ambient cookies to abuse.
+ */
+export function sameOrigin(request:Request){const site=request.headers.get('sec-fetch-site');if(site&&site!=='same-origin'&&site!=='none')return false;const origin=request.headers.get('origin');return !origin||origin===new URL(request.url).origin;}
