@@ -127,6 +127,10 @@ Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (
 
 If uploads fail part-way (for example before a migration was applied), the files they already sent stay in storage with nothing pointing to them. `node scripts/clean-orphan-media.mjs` lists those files and their total size; it deletes nothing. `node scripts/clean-orphan-media.mjs --delete` removes exactly the listed files. It needs `DATABASE_URL` and `PGSSLROOTCERT` in `.env.local`, and for `--delete` also `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. It never touches files younger than 10 minutes or files any content record uses, and it refuses to delete if no record points to any file. Delete `.env.local` afterwards.
 
+### Home page: "People. Not just pictures." and "Care takes many forms"
+
+Both rows drift across the screen by themselves, from left to right, and pause when someone points at them, tabs into them or uses the Previous/Next buttons. They stay still (and can be scrolled by hand) for visitors who prefer reduced motion. "People. Not just pictures." shows every published Gallery photograph in equal-sized frames, with the number of trust members, interns and partners slipped in (these come from Team, Intern colleges and Partners, and a count with nothing behind it is left out). "Care takes many forms" shows every published programme. The student videos have their own strip, "Students, in their words", which shows all published videos and opens each in a large viewer without names.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).

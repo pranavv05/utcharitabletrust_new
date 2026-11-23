@@ -1,27 +1,44 @@
 'use client';
 import {FitPhoto} from '@/components/ui/fit-photo';
-import Image from 'next/image';
 import Link from 'next/link';
-import {useRef, useState, useEffect} from 'react';
+import {useRef} from 'react';
 import type {programmes as ProgrammeData} from '@/lib/content';
-export function ProgrammeSlider({programmes}: {programmes: typeof ProgrammeData}) {
+import {useAutoDrift} from '@/lib/use-auto-drift';
+
+type Programme = (typeof ProgrammeData)[number];
+
+/** With this many programmes or fewer they all fit on a wide screen, so nothing needs to move. */
+const FITS_ON_SCREEN = 3;
+
+function Slide({programme: p, copy}: {programme: Programme; copy: boolean}) {
+  return (
+    <Link
+      href={p.slug === 'book-bank' ? '/book-bank' : '/our-work/' + p.slug}
+      className={'programme-slide accent-' + p.color}
+      // The second copy only makes the loop seamless: hidden from screen readers and the keyboard.
+      {...(copy ? {'aria-hidden': true, tabIndex: -1, inert: true} : {})}
+    >
+      <div className="programme-slide-photo">
+        <FitPhoto
+          src={p.image}
+          alt={copy ? '' : p.name + ' programme'}
+          sizes="(max-width:650px) 80vw,(max-width:1000px) 45vw,30vw"
+        />
+      </div>
+      <div className="programme-slide-copy">
+        <h3>{p.name}</h3>
+        <p>{p.description}</p>
+        <span className="text-link">Discover the programme</span>
+      </div>
+    </Link>
+  );
+}
+
+/** The programmes on the home page: a row of cards that drifts from left to right on its own. */
+export function ProgrammeSlider({programmes}: {programmes: Programme[]}) {
   const rail = useRef<HTMLDivElement>(null);
-  const [edges, setEdges] = useState({start: true, end: false});
-  useEffect(() => {
-    const el = rail.current;
-    if (!el) return;
-    function update() {
-      if (el) setEdges({start: el.scrollLeft < 4, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4});
-    }
-    update();
-    el.addEventListener('scroll', update, {passive: true});
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener('scroll', update);
-      ro.disconnect();
-    };
-  }, [programmes]);
+  const drifting = programmes.length > FITS_ON_SCREEN;
+  useAutoDrift(rail, {enabled: drifting, count: programmes.length});
   function move(direction: number) {
     const el = rail.current;
     if (el)
@@ -35,7 +52,7 @@ export function ProgrammeSlider({programmes}: {programmes: typeof ProgrammeData}
   return (
     <div className="programme-slider">
       <div
-        className="programme-slider-rail"
+        className={'programme-slider-rail' + (drifting ? ' drifting' : '')}
         ref={rail}
         tabIndex={0}
         role="region"
@@ -43,32 +60,16 @@ export function ProgrammeSlider({programmes}: {programmes: typeof ProgrammeData}
         data-lenis-prevent
       >
         {programmes.map((p) => (
-          <Link
-            key={p.slug}
-            href={p.slug === 'book-bank' ? '/book-bank' : '/our-work/' + p.slug}
-            className={'programme-slide accent-' + p.color}
-          >
-            <div className="programme-slide-photo">
-              <FitPhoto
-                src={p.image}
-                alt={p.name + ' programme'}
-                sizes="(max-width:650px) 80vw,(max-width:1000px) 45vw,30vw"
-              />
-            </div>
-            <div className="programme-slide-copy">
-              <h3>{p.name}</h3>
-              <p>{p.description}</p>
-              <span className="text-link">Discover the programme</span>
-            </div>
-          </Link>
+          <Slide key={p.slug} programme={p} copy={false} />
         ))}
+        {drifting && programmes.map((p) => <Slide key={'copy-' + p.slug} programme={p} copy />)}
       </div>
       <div className="programme-slider-footer">
         <div className="slider-buttons">
-          <button onClick={() => move(-1)} disabled={edges.start}>
+          <button onClick={() => move(-1)} aria-label="Previous programmes">
             Previous
           </button>
-          <button onClick={() => move(1)} disabled={edges.end}>
+          <button onClick={() => move(1)} aria-label="Next programmes">
             Next
           </button>
         </div>

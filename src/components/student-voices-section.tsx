@@ -1,11 +1,9 @@
 import Link from 'next/link';
 import {getBookStats, getSiteContent} from '@/lib/site-content';
-import {StudentVoiceCard, StudentVoiceGrid, StudentVoiceMarquee} from './student-voices';
+import {StudentVoiceGrid, StudentVoiceMarquee, StudentVoiceRow} from './student-voices';
 
 /** Fewer than this and a moving strip would leave gaps, so they are shown as a plain row instead. */
 const MARQUEE_MIN = 5;
-/** Enough to feel like a wall of voices without loading dozens of previews on the home page. */
-const MARQUEE_MAX = 24;
 const count = (n: number) => n.toLocaleString('en-IN');
 
 /** Video feedback from students on the Book Bank page, after the catalogue. Nothing renders until one exists. */
@@ -46,7 +44,6 @@ export async function HomeStudentVoices() {
   const [{studentVoices}, stats] = await Promise.all([getSiteContent(), getBookStats()]);
   if (!studentVoices.length) return null;
   const ordered = [...studentVoices.filter((v) => v.featured), ...studentVoices.filter((v) => !v.featured)];
-  const shown = ordered.slice(0, MARQUEE_MAX);
   return (
     <section className="sx-testimonials" aria-labelledby="home-voices-title">
       <div className="experience-container">
@@ -65,15 +62,11 @@ export async function HomeStudentVoices() {
           </p>
         )}
       </div>
-      {shown.length >= MARQUEE_MIN ? (
-        <StudentVoiceMarquee voices={shown} />
+      {ordered.length >= MARQUEE_MIN ? (
+        <StudentVoiceMarquee voices={ordered} />
       ) : (
         <div className="experience-container">
-          <div className="sx-quote-grid">
-            {shown.map((v) => (
-              <StudentVoiceCard key={v.id} item={v} />
-            ))}
-          </div>
+          <StudentVoiceRow voices={ordered} />
         </div>
       )}
     </section>
