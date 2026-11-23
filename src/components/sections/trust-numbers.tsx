@@ -4,7 +4,7 @@ import {gsap, useGSAP} from '@/lib/motion';
 import {useSiteContent} from '@/components/site-content-provider';
 const statement = 'A stronger community is built one act of care at a time.';
 export function TrustNumbers() {
-  const {programmes} = useSiteContent();
+  const {programmeCount} = useSiteContent();
   const scope = useRef<HTMLElement>(null);
   useGSAP(
     () => {
@@ -37,7 +37,7 @@ export function TrustNumbers() {
       });
       return () => mm.revert();
     },
-    {scope, dependencies: [programmes.length], revertOnUpdate: true},
+    {scope, dependencies: [programmeCount], revertOnUpdate: true},
   );
   return (
     <section ref={scope} id="in-numbers" className="chapter numbers-chapter">
@@ -52,7 +52,7 @@ export function TrustNumbers() {
         </h2>
         <div className="trust-number-grid">
           <div>
-            <strong data-count={programmes.length}>{String(programmes.length).padStart(2, '0')}</strong>
+            <strong data-count={programmeCount}>{String(programmeCount).padStart(2, '0')}</strong>
             <h3>Community programmes</h3>
             <p>Education, health, and practical support.</p>
           </div>

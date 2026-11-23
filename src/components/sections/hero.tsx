@@ -62,6 +62,8 @@ export function Hero() {
   const [active, setActive] = useState(0);
   // The slideshow keeps going by itself; it only holds still while someone points at it or tabs into it.
   const [hovered, setHovered] = useState(false);
+  // Photographs are loaded only when they are showing or about to show, so the first screen stays quick.
+  const ready = new Set([0, active, (active + 1) % slides.length]);
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     let timer: ReturnType<typeof setInterval> | undefined;
@@ -118,25 +120,10 @@ export function Hero() {
             key={slide.src}
             aria-hidden={active !== i}
           >
-            {slide.wide ? (
-              <Image
-                src={slide.src}
-                alt={slide.alt}
-                fill
-                priority={i === 0}
-                loading={i === 0 ? undefined : 'eager'}
-                sizes="100vw"
-                quality={85}
-              />
+            {!ready.has(i) ? null : slide.wide ? (
+              <Image src={slide.src} alt={slide.alt} fill priority={i === 0} sizes="100vw" quality={85} />
             ) : (
-              <FitPhoto
-                src={slide.src}
-                alt={slide.alt}
-                priority={i === 0}
-                loading={i === 0 ? undefined : 'eager'}
-                sizes="100vw"
-                quality={85}
-              />
+              <FitPhoto src={slide.src} alt={slide.alt} priority={i === 0} sizes="100vw" quality={85} />
             )}
           </div>
         ))}

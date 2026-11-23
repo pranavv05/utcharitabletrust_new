@@ -715,7 +715,6 @@ a:focus-visible > .sx-logo {
   border: 2px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
   transform: translate(-50%, -62%);
   transition:
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -971,12 +970,9 @@ a:focus-visible > .sx-logo {
   outline: 3px solid var(--accent, #0069d9);
   outline-offset: 3px;
 }
-.moment-photo > span:not(.moment-caption),
-.moment-photo img {
-  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.moment-photo:hover .fit-main {
-  transform: scale(1.04);
+.moment-img {
+  object-fit: contain;
+  background: linear-gradient(160deg, #16283a, #0d1b24);
 }
 .moment-photo::after {
   position: absolute;

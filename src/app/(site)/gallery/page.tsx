@@ -1,7 +1,9 @@
 import {PageIntro, JoinBanner} from '@/components/shared';
 import {Gallery} from '@/components/gallery';
+import {getSiteContent} from '@/lib/site-content';
 export const metadata = {title: 'Our gallery'};
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const {gallery} = await getSiteContent();
   return (
     <>
       <PageIntro
@@ -11,7 +13,7 @@ export default function GalleryPage() {
       />
       <section className="page-content">
         <div className="container">
-          <Gallery />
+          <Gallery gallery={gallery} />
         </div>
       </section>
       <JoinBanner />
