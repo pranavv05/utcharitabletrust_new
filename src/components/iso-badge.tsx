@@ -10,7 +10,7 @@ export function isoLabel(iso: IsoInfo | null) {
   return iso ? iso.standard + ' certified' : 'ISO Certified Trust';
 }
 
-export function IsoBadge({iso, variant = 'pill'}: {iso: IsoInfo | null; variant?: 'pill' | 'line' | 'hero'}) {
+export function IsoBadge({iso, variant = 'pill'}: {iso: IsoInfo | null; variant?: 'pill' | 'line'}) {
   const label = isoLabel(iso);
   return (
     <Link
@@ -20,15 +20,10 @@ export function IsoBadge({iso, variant = 'pill'}: {iso: IsoInfo | null; variant?
         'UT Charitable Trust is ' + (iso ? label : 'an ISO certified trust') + '. View certification details'
       }
     >
-      <BadgeCheck size={variant === 'hero' ? 22 : variant === 'pill' ? 16 : 15} aria-hidden="true" />
+      <BadgeCheck size={variant === 'pill' ? 16 : 15} aria-hidden="true" />
       {variant === 'line' ? (
         <span>
           UT Charitable Trust · <strong>{label}</strong>
-        </span>
-      ) : variant === 'hero' ? (
-        <span>
-          <strong>ISO Certified Trust</strong>
-          <small>{iso ? iso.standard : 'Quality you can rely on'}</small>
         </span>
       ) : (
         <span>{label}</span>
