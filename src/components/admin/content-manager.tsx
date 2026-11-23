@@ -1,12 +1,13 @@
 'use client';
 import {useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
-import {Search, Trash2, Pencil, ExternalLink, Plus} from 'lucide-react';
+import {Search, Trash2, Pencil, ExternalLink, Plus, Upload} from 'lucide-react';
 import {Dialog, send} from './workspace';
 import {type Row} from '@/lib/admin/config';
 import {kindSpec, kindSpecs, publishIssues, slugify, type FieldSpec} from '@/lib/admin/content-kinds';
 import {uploadHelp, uploadImage, uploadLarge} from '@/lib/admin/media-client';
 import {yearOf} from '@/lib/media';
+import {GalleryBulkUpload} from './gallery-bulk-upload';
 
 const PAGE = 25;
 type Data = Record<string, string>;
@@ -27,6 +28,8 @@ export function ContentManager() {
     [open, setOpen] = useState(false),
     [deleting, setDeleting] = useState<Row | null>(null),
     [yearDialog, setYearDialog] = useState(false),
+    [bulkOpen, setBulkOpen] = useState(false),
+    [bulkDelete, setBulkDelete] = useState(false),
     [year, setYear] = useState(''),
     [selected, setSelected] = useState<Set<string>>(new Set()),
     [search, setSearch] = useState(''),
@@ -121,6 +124,45 @@ export function ContentManager() {
       setBusy(false);
     }
   }
+  async function renameCaption(row: Row, value: string) {
+    const name = value.trim();
+    if (!name || name === row.name) return;
+    setError('');
+    try {
+      await send('content', {
+        id: row.id,
+        expected_updated_at: row.updated_at,
+        kind: row.kind,
+        name,
+        slug: row.slug,
+        status: row.status,
+        data: row.data,
+        sort_order: Number(row.sort_order) || 0,
+      });
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+  async function removeSelected() {
+    setBusy(true);
+    setError('');
+    let removed = 0;
+    try {
+      for (const id of selected) {
+        await send('content-delete', {id});
+        removed++;
+      }
+      setNotice(`Deleted ${removed} photograph${removed === 1 ? '' : 's'}.`);
+    } catch (e) {
+      setError(`Deleted ${removed}, then stopped: ${(e as Error).message}`);
+    } finally {
+      setBulkDelete(false);
+      setSelected(new Set());
+      setBusy(false);
+      await load();
+    }
+  }
   async function applyYear() {
     setBusy(true);
     setError('');
@@ -145,17 +187,24 @@ export function ContentManager() {
           <h1>Website content</h1>
           <p>{spec.intro}</p>
         </div>
-        {!spec.single && (
-          <button
-            className="admin-button primary"
-            onClick={() => {
-              setEditing(null);
-              setOpen(true);
-            }}
-          >
-            <Plus size={17} /> Add {spec.singular}
-          </button>
-        )}
+        <div className="admin-heading-actions">
+          {kind === 'gallery' && (
+            <button className="admin-button secondary" onClick={() => setBulkOpen(true)}>
+              <Upload size={17} /> Bulk upload photographs
+            </button>
+          )}
+          {!spec.single && (
+            <button
+              className="admin-button primary"
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+            >
+              <Plus size={17} /> Add {spec.singular}
+            </button>
+          )}
+        </div>
       </div>
       <div className="admin-content-tabs" role="group" aria-label="Content type">
         {kindSpecs.map((k) => (
@@ -255,6 +304,13 @@ export function ContentManager() {
             >
               Set year for {selected.size || 'selected'} photographs
             </button>
+            <button
+              className="admin-button danger"
+              disabled={!selected.size}
+              onClick={() => setBulkDelete(true)}
+            >
+              Delete {selected.size || 'selected'} photographs
+            </button>
           </div>
         )}
         {loading ? (
@@ -300,15 +356,29 @@ export function ContentManager() {
                         </td>
                       )}
                       <td>
-                        <button
-                          className="admin-record-link"
-                          onClick={() => {
-                            setEditing(r);
-                            setOpen(true);
-                          }}
-                        >
-                          {String(r.name)}
-                        </button>
+                        {kind === 'gallery' ? (
+                          <input
+                            className="admin-inline-caption"
+                            aria-label={'Caption for ' + r.name}
+                            defaultValue={String(r.name)}
+                            maxLength={150}
+                            key={id + String(r.name)}
+                            onBlur={(e) => void renameCaption(r, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') e.currentTarget.blur();
+                            }}
+                          />
+                        ) : (
+                          <button
+                            className="admin-record-link"
+                            onClick={() => {
+                              setEditing(r);
+                              setOpen(true);
+                            }}
+                          >
+                            {String(r.name)}
+                          </button>
+                        )}
                       </td>
                       {spec.yearField && <td>{String(data[spec.yearField] || '—')}</td>}
                       <td>
@@ -423,6 +493,44 @@ export function ContentManager() {
             </button>
             <button className="admin-button danger" disabled={busy} onClick={remove}>
               Delete permanently
+            </button>
+          </div>
+        </Dialog>
+      )}
+      {bulkOpen && (
+        <GalleryBulkUpload
+          categories={Array.from(
+            new Set(
+              rows
+                .filter((r) => r.kind === 'gallery')
+                .map((r) => String(rowData(r).category || ''))
+                .filter(Boolean),
+            ),
+          )}
+          programmes={rows
+            .filter((r) => r.kind === 'programme' && r.status === 'published')
+            .map((r) => ({name: String(r.name), path: kindSpec('programme').publicPath!(String(r.slug))}))}
+          onClose={() => setBulkOpen(false)}
+          onDone={async () => {
+            setNotice(
+              'Photographs uploaded. Published photographs appear on the Gallery page automatically.',
+            );
+            await load();
+          }}
+        />
+      )}
+      {bulkDelete && (
+        <Dialog
+          title={`Delete ${selected.size} photographs?`}
+          subtitle="This removes them from the website and cannot be undone. Their image files are removed too."
+          onClose={() => setBulkDelete(false)}
+        >
+          <div className="admin-form-footer">
+            <button className="admin-button secondary" onClick={() => setBulkDelete(false)}>
+              Cancel
+            </button>
+            <button className="admin-button danger" disabled={busy} onClick={removeSelected}>
+              {busy ? 'Deleting…' : `Delete ${selected.size} photographs`}
             </button>
           </div>
         </Dialog>

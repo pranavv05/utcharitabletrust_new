@@ -58,7 +58,7 @@ Credentials, account passwords, personal SQL dumps, private data migrations, bac
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=local-test-key npm run dev
 ```
 
-You can then sign in at `/login` and use every admin screen, including saving, uploading and deleting, without touching any real project. It is for local testing only; Realtime is not provided, so live updates fall back to polling. It emulates Supabase closely enough for this app but is not a replacement for checking on a real project.
+You can then sign in at `/login` and use every admin screen, including saving, uploading and deleting, without touching any real project. It is for local testing only; Realtime is not provided, so live updates fall back to polling. If Windows refuses the default port (some ports are reserved after a restart), run it with another one, for example `PORT=18321 node scripts/local-test-backend.mjs`, and use that port in `NEXT_PUBLIC_SUPABASE_URL`. It emulates Supabase closely enough for this app but is not a replacement for checking on a real project.
 
 ## Verification
 
