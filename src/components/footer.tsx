@@ -51,7 +51,7 @@ export async function Footer() {
             <a href={gmailLink()} target="_blank" rel="noopener noreferrer">
               help@utcharitabletrust.com
             </a>
-            <a href={whatsappLink(trustContacts.events.digits)} target="_blank" rel="noopener noreferrer">
+            <a href={whatsappLink(trustContacts.phone.digits)} target="_blank" rel="noopener noreferrer">
               +91 93779 58582
             </a>
             <div className="footer-social-icons">

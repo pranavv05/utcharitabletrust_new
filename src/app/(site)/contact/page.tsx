@@ -21,7 +21,7 @@ export default async function ContactPage({searchParams}: {searchParams: Promise
               <div className="contact-channel">
                 <Phone size={21} />
                 <div>
-                  {[trustContacts.support, trustContacts.events].map((c) => (
+                  {[trustContacts.phone].map((c) => (
                     <a key={c.digits} href={whatsappLink(c.digits)} target="_blank" rel="noopener noreferrer">
                       <strong>{c.number}</strong>
                       <span>{c.label}</span>

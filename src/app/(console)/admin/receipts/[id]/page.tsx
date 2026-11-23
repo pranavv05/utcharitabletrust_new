@@ -18,7 +18,7 @@ export default async function Receipt({params}: {params: Promise<{id: string}>})
   const trust: ReceiptTrust = {
     name: 'UT Charitable Trust',
     address: trustContacts.address,
-    phone: trustContacts.events.number,
+    phone: trustContacts.phone.number,
     email: trustContacts.email,
     registration: site?.legal.find((d) => d.group === 'registration' && d.number)?.number,
     iso: site?.iso?.standard,

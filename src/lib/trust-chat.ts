@@ -22,15 +22,13 @@ export function guideReply(question: string, site: SiteContent): ChatReply {
     ];
   } else if (/contact|phone|email|whatsapp|call|number/.test(q)) {
     message =
-      'For general support, message ' +
-      trustContacts.support.number +
-      '. For events and drives, message ' +
-      trustContacts.events.number +
+      'You can call or message the trust on WhatsApp at ' +
+      trustContacts.phone.number +
       '. You can also write to ' +
       trustContacts.email +
       '.';
     links = [
-      {label: 'General support on WhatsApp', href: whatsappLink()},
+      {label: 'Message on WhatsApp', href: whatsappLink()},
       {label: 'Write in Gmail', href: gmailLink()},
     ];
   } else if (/chair|president|leadership|who leads|team/.test(q)) {
