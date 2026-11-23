@@ -116,7 +116,7 @@ Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (
 
 ## Student videos on the Book Bank page
 
-**Website content → Student videos** holds the video feedback from students. Published videos appear in a "Hear it from the students" section after the catalogue on the Book Bank page, and up to three (those set to "Show on the home page", otherwise the first three) appear on the home page. Both places also show how many books have been issued (a count only; no names or references are public).
+**Website content → Student videos** holds the video feedback from students. Published videos appear in a "Hear it from the students" section after the catalogue on the Book Bank page, and on the home page they drift across a strip from left to right (videos set to "Show on the home page" come first, up to 24 in all; it pauses when someone points at it or plays a video). The Book Bank page shows three full rows first, then a "Show more videos" button. Both places also show how many books have been issued (a count only; no names or references are public).
 
 - **Bulk upload videos** takes many MP4/WebM files at once (up to 50 MB each). Each is uploaded to storage, a preview picture is made from one of its frames, and the video is published. They are saved as "Student"; the public cards hide that label, so open a video later to add a real first name, a short written quote, a class or book, or a year.
 - **A single video** can be a YouTube or Vimeo link instead of a file (useful for long videos).
