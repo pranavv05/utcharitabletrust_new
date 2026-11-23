@@ -139,6 +139,17 @@ The Our people page (`/team`) shows everyone in four groups, as on the trust's o
 - **Photographs:** a photograph named `blank.webp` is treated as "no photograph" and shows initials. Upload a real photo to replace it.
 - **Migration `20261123110000_team_groups.sql`** puts the existing 44 entries into their groups, corrects three names (Dr. G L Chaudhary, Mr. Priyanksinh I Parmar, Mr. Prem Prakash Singh) and three photographs (Durgesh Rajpurohit, Mohan K.S, Priyanksinh I Parmar), adds Dr. Laxman Rohit, and removes the two exact duplicate entries (Dinkar Dubey and Rahul Shah). An entry you have already edited is left alone.
 
+## Changing a copy's UTBN
+
+Open **Book inventory**, press **Edit** on a copy and use the **Copy number (UTBN)** block under the form. Enter the new number, press **Change number** and confirm.
+
+- Only an administrator can do this. Other staff see the number but cannot change it.
+- **No two books can share a UTBN.** The database refuses a number another copy already uses, whichever way it is set (this screen, a donation, an import). Numbers are whole numbers from 1 to 99999999.
+- A copy that is **out on loan** cannot be renumbered; return it first.
+- The change is recorded in the activity log (old number, new number, book title). Labels already stuck on the book and receipts already printed still show the old number, so print a new label afterwards (Book inventory → Print QR labels).
+- New donated copies keep counting up from the highest number in use, so they never repeat a number you set by hand.
+- Older records may already repeat a number. The check only guards new numbers, so those copies keep working; their edit dialog shows a warning, and giving one of them a new number here resolves it.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).

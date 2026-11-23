@@ -119,7 +119,7 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
         p_year: typeof body.year === 'string' ? body.year : '',
       });
     }
-  } else if (['renew', 'followup', 'approve', 'correct', 'cancel'].includes(entity))
+  } else if (['renew', 'followup', 'approve', 'correct', 'cancel', 'utbn'].includes(entity))
     result = await ctx.db.rpc('admin_' + entity, {p_data: body});
   else if (entity === 'team') {
     const access = staffAccessSchema.safeParse(body);
@@ -161,7 +161,9 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
     const code = result.error.code;
     const message =
       code === '23505'
-        ? 'A record with those details already exists.'
+        ? /UTBN/.test(result.error.message)
+          ? result.error.message
+          : 'A record with those details already exists.'
         : code === 'P0001'
           ? plainTerms(result.error.message)
           : code === '22007' || code === '22P02'
