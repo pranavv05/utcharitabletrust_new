@@ -104,6 +104,9 @@ export function Header() {
           <Link href="/our-work" aria-current={path === '/our-work' ? 'page' : undefined}>
             Our work
           </Link>
+          <Link href="/team" aria-current={path === '/team' ? 'page' : undefined}>
+            Our people
+          </Link>
           <Link href="/book-bank" aria-current={path === '/book-bank' ? 'page' : undefined}>
             Book bank
           </Link>

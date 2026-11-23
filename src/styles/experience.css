@@ -1572,7 +1572,8 @@ html.lenis body {
   .quiet-nav {
     gap: 25px;
   }
-  .quiet-nav > a:first-child {
+  /* Not enough room for the first two links on tablets; they stay in the menu. */
+  .quiet-nav > a:nth-child(-n + 2) {
     display: none;
   }
   .nav-utilities {
