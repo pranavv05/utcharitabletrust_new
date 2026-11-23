@@ -53,7 +53,7 @@ export function VideoEmbed({
 
 function PlayButton({poster, title, onPlay}: {poster?: string; title: string; onPlay: () => void}) {
   return (
-    <button type="button" className="sx-video-play" onClick={onPlay}>
+    <button type="button" className="sx-video-play" aria-label={'Play video: ' + title} onClick={onPlay}>
       {poster && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={poster} alt="" loading="lazy" />
@@ -61,7 +61,6 @@ function PlayButton({poster, title, onPlay}: {poster?: string; title: string; on
       <span className="sx-video-icon">
         <Play size={28} fill="currentColor" />
       </span>
-      <span className="sx-video-label">Play video: {title}</span>
     </button>
   );
 }
