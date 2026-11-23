@@ -25,7 +25,7 @@ const pages: Record<string, {title: string; eyebrow: string; description: string
     title: 'The people behind the purpose.',
     eyebrow: 'Our people',
     description:
-      'Meet the trustees, members, and volunteers who give their time and care to UT Charitable Trust.',
+      'Meet our trustees, advisory board, mentors and working body: the people who give their time and care to UT Charitable Trust.',
   },
   'president-message': {
     title: 'A shared purpose. A personal commitment.',

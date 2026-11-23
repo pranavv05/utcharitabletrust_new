@@ -906,34 +906,6 @@ body:after {
   object-fit: contain;
   background: var(--photo-paper);
 }
-.team-card {
-  background: var(--panel);
-  border: 1px solid var(--stroke);
-  padding: 10px 10px 20px;
-  border-radius: 16px;
-  overflow: hidden;
-  transition:
-    transform 0.35s,
-    box-shadow 0.35s;
-}
-.team-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--frame-shadow);
-}
-.team-card img {
-  border-radius: 9px;
-  object-fit: cover;
-}
-.team-card h3,
-.team-card p {
-  padding-inline: 7px;
-}
-.team-card h3 {
-  font-size: 1rem;
-}
-.team-card p {
-  font-size: 0.875rem;
-}
 .cert-card {
   border-radius: 16px;
   background: var(--photo-paper);
@@ -1353,15 +1325,6 @@ body:after {
     border-width: 9px;
     height: auto;
   }
-  .team-card {
-    padding: 7px 7px 16px;
-  }
-  .team-card h3 {
-    font-size: 0.9375rem;
-  }
-  .team-card p {
-    font-size: 0.8125rem;
-  }
 }
 @media (max-width: 520px) {
   .framed-gallery {
@@ -1415,7 +1378,6 @@ body:after {
   }
   .bright-hero *,
   .framed-gallery *,
-  .team-card,
   .horizontal-moment {
     transition: none !important;
   }
@@ -1424,8 +1386,7 @@ body:after {
     transform: none;
   }
   .bright-button:hover,
-  .framed-gallery .gallery-card:hover,
-  .team-card:hover {
+  .framed-gallery .gallery-card:hover {
     transform: none;
   }
 }

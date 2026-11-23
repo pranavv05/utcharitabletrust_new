@@ -378,26 +378,6 @@ svg {
 .value p {
   font-size: 0.9rem;
 }
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
-}
-.team-card img {
-  width: 100%;
-  aspect-ratio: 4/4.5;
-  object-position: top;
-  background: var(--surface);
-  border-radius: 5px;
-}
-.team-card h3 {
-  font-size: 1rem;
-  margin-top: 18px;
-}
-.team-card p {
-  font-size: 0.8rem;
-  margin-top: 7px;
-}
 .president-grid {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -860,9 +840,6 @@ tbody tr:hover {
   .form-layout {
     gap: 45px;
   }
-  .team-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 @media (max-width: 850px) {
   .section {
@@ -976,16 +953,6 @@ tbody tr:hover {
     gap: 35px;
     padding-top: 35px;
     margin-top: 35px;
-  }
-  .team-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px 18px;
-  }
-  .team-card h3 {
-    font-size: 0.9rem;
-  }
-  .team-card p {
-    font-size: 0.75rem;
   }
   .president-grid {
     grid-template-columns: 1fr;

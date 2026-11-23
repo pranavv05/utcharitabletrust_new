@@ -125,10 +125,22 @@ export const kindSpecs: KindSpec[] = [
     publicPath: () => '/team',
     fields: [
       {
+        key: 'group',
+        label: 'Group',
+        type: 'select',
+        options: [
+          ['trustee', 'Trustees'],
+          ['advisory', 'Advisory Board'],
+          ['mentor', 'Our Mentors'],
+          ['working', 'Working Body'],
+        ],
+        help: 'The section of the Our people page this person appears in.',
+      },
+      {
         key: 'role',
         label: 'Role / responsibility',
         type: 'text',
-        help: 'For example Chairman, President or Trust member.',
+        help: 'For example Chairman, President, Trustee or Mentor.',
       },
       {key: 'image', label: 'Photograph', type: 'image', publish: true},
       {key: 'bio', label: 'Short bio (optional)', type: 'textarea', rows: 4},

@@ -286,14 +286,6 @@ h3 {
 .programme-body .text-link {
   font-size: 0.8rem;
 }
-.team-card img {
-  border-radius: 0;
-}
-.team-card h3 {
-  font-size: 0.98rem;
-  line-height: 1.4;
-  letter-spacing: -0.015em;
-}
 .cert-card {
   border-radius: 0;
   background: var(--surface);
