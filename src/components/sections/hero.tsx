@@ -4,8 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import {gsap, useGSAP} from '@/lib/motion';
-import {useSiteContent} from '@/components/site-content-provider';
-import {IsoBadge} from '@/components/iso-badge';
 
 /** The photographs in public/images/slides. Very wide ones fill the screen; the others are shown whole. */
 const slides = [
@@ -57,7 +55,6 @@ const slides = [
 ];
 
 export function Hero() {
-  const {iso} = useSiteContent();
   const scope = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   // The slideshow keeps going by itself; it only holds still while someone points at it or tabs into it.
@@ -130,7 +127,6 @@ export function Hero() {
       </div>
       <div className="photo-hero-shade" />
       <div className="experience-container photo-hero-content">
-        <IsoBadge iso={iso} variant="hero" />
         <h1 id="hero-heading">
           Care you
           <br />

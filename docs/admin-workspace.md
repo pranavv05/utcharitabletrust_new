@@ -153,7 +153,7 @@ Open **Book inventory**, press **Edit** on a copy and use the **Copy number (UTB
 ## Home page hero and the ISO certification
 
 - **Hero slideshow:** the background photographs are the files in `public/images/slides` (currently `slide-v2-3.webp` and `slide-02.jpeg` to `slide-08.jpeg`), listed with their captions at the top of `src/components/sections/hero.tsx`. To change the slideshow, replace or add files there and update that list. It plays by itself, pauses while a visitor points at it or tabs into it, and the dots jump to a photograph.
-- **ISO certified trust** is shown in the hero, the header, the footer, the Legal documents page, the banner that ends most pages, the home page's scrolling words, printed receipts, the page titles and descriptions that search engines show, and the website assistant. By default these say **ISO Certified Trust**. Once the exact standard is entered in **Website content → ISO certification** (for example ISO 9001:2015, with the certificate number, certifying body and expiry), every place names it, and the Legal documents page shows the full certificate card.
+- **ISO certified trust** is mentioned in the hero introduction, shown in the header, the footer, the Legal documents page, the banner that ends most pages, the home page's scrolling words, printed receipts, the page titles and descriptions that search engines show, and the website assistant. By default these say **ISO Certified Trust**. Once the exact standard is entered in **Website content → ISO certification** (for example ISO 9001:2015, with the certificate number, certifying body and expiry), every place names it, and the Legal documents page shows the full certificate card.
 
 ## Lending policy and receipts
 
