@@ -13,7 +13,7 @@ test('trust guide returns book-bank information with usable local links', () => 
 });
 test('contact guide uses WhatsApp and Gmail destinations and admits its scope', () => {
   const r = guideReply('What is the contact phone number?', site);
-  assert.ok(r.links.some((l) => l.href.startsWith('https://wa.me/919712968582')));
+  assert.ok(r.links.some((l) => l.href.startsWith('https://wa.me/919377958582')));
   assert.ok(r.links.some((l) => l.href.startsWith('https://mail.google.com/')));
   assert.ok(guideReply('Explain quantum mechanics', site).message.includes('currently help'));
 });

@@ -1,11 +1,10 @@
 export const trustContacts = {
-  support: {number: '+91 97129 68582', digits: '919712968582', label: 'General support'},
-  events: {number: '+91 93779 58582', digits: '919377958582', label: 'Events & drives'},
+  phone: {number: '+91 93779 58582', digits: '919377958582', label: 'Call or WhatsApp'},
   email: 'help@utcharitabletrust.com',
   secondaryEmail: 'utctrust@gmail.com',
   address: 'Shop No. 05, V-Raj Darshan, Samarwani, Silvassa, Dadra and Nagar Haveli – 396230',
 };
-export const whatsappLink = (number = trustContacts.support.digits) =>
+export const whatsappLink = (number = trustContacts.phone.digits) =>
   'https://wa.me/' +
   number.replace(/\D/g, '') +
   '?text=' +
