@@ -8,6 +8,7 @@ import {kindSpec, kindSpecs, publishIssues, slugify, type FieldSpec} from '@/lib
 import {uploadHelp, uploadImage, uploadLarge} from '@/lib/admin/media-client';
 import {yearOf} from '@/lib/media';
 import {GalleryBulkUpload} from './gallery-bulk-upload';
+import {StudentVideoBulkUpload} from './student-video-bulk-upload';
 
 const PAGE = 25;
 type Data = Record<string, string>;
@@ -29,6 +30,7 @@ export function ContentManager() {
     [deleting, setDeleting] = useState<Row | null>(null),
     [yearDialog, setYearDialog] = useState(false),
     [bulkOpen, setBulkOpen] = useState(false),
+    [videoBulkOpen, setVideoBulkOpen] = useState(false),
     [bulkDelete, setBulkDelete] = useState(false),
     [year, setYear] = useState(''),
     [selected, setSelected] = useState<Set<string>>(new Set()),
@@ -42,6 +44,8 @@ export function ContentManager() {
     [busy, setBusy] = useState(false),
     [loading, setLoading] = useState(true);
   const spec = kindSpec(kind);
+  const selectable = kind === 'gallery' || kind === 'student_voice';
+  const noun = kind === 'student_voice' ? 'video' : 'photograph';
 
   async function load() {
     setLoading(true);
@@ -153,7 +157,7 @@ export function ContentManager() {
         await send('content-delete', {id});
         removed++;
       }
-      setNotice(`Deleted ${removed} photograph${removed === 1 ? '' : 's'}.`);
+      setNotice(`Deleted ${removed} ${noun}${removed === 1 ? '' : 's'}.`);
     } catch (e) {
       setError(`Deleted ${removed}, then stopped: ${(e as Error).message}`);
     } finally {
@@ -191,6 +195,11 @@ export function ContentManager() {
           {kind === 'gallery' && (
             <button className="admin-button secondary" onClick={() => setBulkOpen(true)}>
               <Upload size={17} /> Bulk upload photographs
+            </button>
+          )}
+          {kind === 'student_voice' && (
+            <button className="admin-button secondary" onClick={() => setVideoBulkOpen(true)}>
+              <Upload size={17} /> Bulk upload videos
             </button>
           )}
           {!spec.single && (
@@ -282,7 +291,7 @@ export function ContentManager() {
             <span>{filtered.length.toLocaleString('en-IN')} records</span>
           </div>
         </div>
-        {kind === 'gallery' && (
+        {selectable && (
           <div className="admin-bulk-bar">
             <label>
               <input
@@ -294,22 +303,24 @@ export function ContentManager() {
               />{' '}
               Select all {filtered.length} shown
             </label>
-            <button
-              className="admin-button secondary"
-              disabled={!selected.size}
-              onClick={() => {
-                setYear('');
-                setYearDialog(true);
-              }}
-            >
-              Set year for {selected.size || 'selected'} photographs
-            </button>
+            {kind === 'gallery' && (
+              <button
+                className="admin-button secondary"
+                disabled={!selected.size}
+                onClick={() => {
+                  setYear('');
+                  setYearDialog(true);
+                }}
+              >
+                Set year for {selected.size || 'selected'} photographs
+              </button>
+            )}
             <button
               className="admin-button danger"
               disabled={!selected.size}
               onClick={() => setBulkDelete(true)}
             >
-              Delete {selected.size || 'selected'} photographs
+              Delete {selected.size || 'selected'} {noun}s
             </button>
           </div>
         )}
@@ -320,7 +331,7 @@ export function ContentManager() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  {kind === 'gallery' && (
+                  {selectable && (
                     <th>
                       <span className="admin-visually-hidden">Select</span>
                     </th>
@@ -340,7 +351,7 @@ export function ContentManager() {
                   const data = rowData(r);
                   return (
                     <tr key={id}>
-                      {kind === 'gallery' && (
+                      {selectable && (
                         <td>
                           <input
                             type="checkbox"
@@ -519,10 +530,19 @@ export function ContentManager() {
           }}
         />
       )}
+      {videoBulkOpen && (
+        <StudentVideoBulkUpload
+          onClose={() => setVideoBulkOpen(false)}
+          onDone={async () => {
+            setNotice('Videos uploaded. Published videos appear on the Book Bank page automatically.');
+            await load();
+          }}
+        />
+      )}
       {bulkDelete && (
         <Dialog
-          title={`Delete ${selected.size} photographs?`}
-          subtitle="This removes them from the website and cannot be undone. Their image files are removed too."
+          title={`Delete ${selected.size} ${noun}s?`}
+          subtitle={`This removes them from the website and cannot be undone. Their ${noun === 'video' ? 'video and preview files are' : 'image files are'} removed too.`}
           onClose={() => setBulkDelete(false)}
         >
           <div className="admin-form-footer">
@@ -530,7 +550,7 @@ export function ContentManager() {
               Cancel
             </button>
             <button className="admin-button danger" disabled={busy} onClick={removeSelected}>
-              {busy ? 'Deleting…' : `Delete ${selected.size} photographs`}
+              {busy ? 'Deleting…' : `Delete ${selected.size} ${noun}s`}
             </button>
           </div>
         </Dialog>

@@ -29,6 +29,17 @@ export type Testimonial = {
   videoUrl: string;
   featured: boolean;
 };
+export type StudentVoice = {
+  id: string;
+  name: string;
+  quote: string;
+  role: string;
+  year: string;
+  image: string;
+  videoUrl: string;
+  videoFile: string;
+  featured: boolean;
+};
 export type PartnerTier = 'principal' | 'gold' | 'silver' | 'supporter';
 export type Partner = {
   id: string;
@@ -80,6 +91,7 @@ export type SiteContent = {
   announcements: {id: string; name: string; body: string; link: string}[];
   news: NewsItem[];
   testimonials: Testimonial[];
+  studentVoices: StudentVoice[];
   partners: Partner[];
   legal: LegalDoc[];
   colleges: College[];
@@ -99,6 +111,7 @@ export const fallbackContent: SiteContent = {
   announcements: [],
   news: [],
   testimonials: [],
+  studentVoices: [],
   partners: [],
   legal: certificates.map((n, i) => ({
     id: 'certificate-' + n,
@@ -176,6 +189,17 @@ export function mapContent(rows: Entry[]): SiteContent {
       videoUrl: r.data.video_url || '',
       featured: r.data.featured === 'yes',
     })),
+    studentVoices: of('student_voice').map((r) => ({
+      id: r.id,
+      name: r.name,
+      quote: r.data.quote || '',
+      role: r.data.role || '',
+      year: yearOf(r.data.year),
+      image: r.data.image || '',
+      videoUrl: r.data.video_url || '',
+      videoFile: r.data.video_file || '',
+      featured: r.data.featured === 'yes',
+    })),
     partners: of('partner').map((r) => ({
       id: r.id,
       slug: r.slug,
@@ -234,4 +258,14 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   }
   if (error || !Array.isArray(data)) throw Error('Published website content is temporarily unavailable.');
   return mapContent(data as Entry[]);
+});
+
+/** How many books have been issued to students, or null when it is not available (nothing is shown then). */
+export const getBookStats = cache(async (): Promise<{issued: number} | null> => {
+  const db = await serverClient();
+  if (!db) return null;
+  const {data, error} = await db.rpc('public_book_stats');
+  const issued = (data as {issued?: unknown} | null)?.issued;
+  if (error || typeof issued !== 'number' || issued < 1) return null;
+  return {issued};
 });

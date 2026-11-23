@@ -9,6 +9,7 @@ import {VelocityMarquee} from '@/components/sections/velocity-marquee';
 import {Experience} from '@/components/sections/experience';
 import {MagneticLink} from '@/components/ui/magnetic-link';
 import {TestimonialsSection} from '@/components/testimonials';
+import {HomeStudentVoices} from '@/components/student-voices-section';
 import {PartnersStrip} from '@/components/partners';
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
       <TrustNumbers />
       <HorizontalGallery />
       <Voices />
+      <HomeStudentVoices />
       <TestimonialsSection />
       <PartnersStrip />
       <section id="together" className="chapter final-chapter">

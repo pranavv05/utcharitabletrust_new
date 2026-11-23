@@ -114,6 +114,15 @@ Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (
 - To remove mistakes, tick the photos in the list and use **Delete N photographs**. Their image files are removed from storage as well. **Set year for N photographs** assigns a year to selected photos later.
 - 200 photos at about 300 KB each use roughly 60 MB of storage.
 
+## Student videos on the Book Bank page
+
+**Website content → Student videos** holds the video feedback from students. Published videos appear in a "Hear it from the students" section after the catalogue on the Book Bank page, and up to three (those set to "Show on the home page", otherwise the first three) appear on the home page. Both places also show how many books have been issued (a count only; no names or references are public).
+
+- **Bulk upload videos** takes many MP4/WebM files at once (up to 50 MB each). Each is uploaded to storage, a preview picture is made from one of its frames, and the video is published. They are saved as "Student"; the public cards hide that label, so open a video later to add a real first name, a short written quote, a class or book, or a year.
+- **A single video** can be a YouTube or Vimeo link instead of a file (useful for long videos).
+- **Removing a video:** open it and set Visibility to Archived or Draft (it leaves the website immediately and can be restored), or delete it permanently with the bin icon. Several can be ticked and deleted together. Deleting also removes the video and preview files from storage.
+- Needs migration `20261123100000_student_voices.sql` (new content type and the public issued-books count). Until it is applied the section and the count simply do not appear.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).

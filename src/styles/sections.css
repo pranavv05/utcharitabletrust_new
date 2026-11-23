@@ -572,3 +572,65 @@ a:focus-visible > .sx-logo {
   background: var(--photo-paper, #fffefa);
   font: inherit;
 }
+
+/* Student videos (Book Bank page and home page) */
+.sx-video video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.sx-voices-section {
+  margin-top: 64px;
+  scroll-margin-top: 90px;
+}
+.sx-voice-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-voice-facts li {
+  padding: 10px 16px;
+  border: 1px solid var(--stroke, #d5ddd7);
+  border-radius: 999px;
+  background: var(--photo-paper, #fffefa);
+  font-size: 0.92rem;
+}
+.sx-voice-facts strong {
+  font-size: 1.15rem;
+}
+.sx-voice-lead {
+  margin: 0 0 22px;
+  font-size: 1.05rem;
+}
+.sx-voice-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.sx-voice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sx-voice-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+.sx-voice figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sx-voice .sx-video {
+  aspect-ratio: 4 / 5;
+}

@@ -52,3 +52,6 @@ export function byYear<T extends {year?: string}>(items: T[], filter: YearFilter
   if (filter === 'undated') return items.filter((i) => !i.year);
   return items.filter((i) => i.year === filter);
 }
+
+/** The name given to student videos added in bulk; it is not shown to visitors, only a real name is. */
+export const GENERIC_STUDENT_NAME = 'Student';

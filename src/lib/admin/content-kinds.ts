@@ -158,6 +158,44 @@ export const kindSpecs: KindSpec[] = [
     ],
   },
   {
+    kind: 'student_voice',
+    tab: 'Student videos',
+    singular: 'student video',
+    nameLabel: 'Student’s first name',
+    intro:
+      'Video feedback from students who borrowed from the book bank, shown on the Book Bank page. To take one down, set it to Archived or Draft (it disappears from the website straight away) or delete it permanently.',
+    yearField: 'year',
+    publicPath: () => '/book-bank',
+    fields: [
+      {key: 'video_file', label: 'Video file', type: 'video'},
+      {key: 'video_url', label: 'Or a YouTube / Vimeo link', type: 'url'},
+      {
+        key: 'quote',
+        label: 'What they said (optional)',
+        type: 'textarea',
+        rows: 4,
+        help: 'A short written version, shown under the video.',
+      },
+      {key: 'role', label: 'Class or book (optional)', type: 'text', help: 'For example Class 10 or Maths.'},
+      {key: 'year', label: 'Year recorded', type: 'year'},
+      {
+        key: 'image',
+        label: 'Preview picture (optional)',
+        type: 'image',
+        help: 'Shown before the video plays. Added automatically when you bulk upload.',
+      },
+      {
+        key: 'featured',
+        label: 'Show on the home page',
+        type: 'select',
+        options: [
+          ['no', 'No'],
+          ['yes', 'Yes'],
+        ],
+      },
+    ],
+  },
+  {
     kind: 'partner',
     tab: 'Partners',
     singular: 'partner',
@@ -262,6 +300,8 @@ export const kindSpec = (kind: string) => kindSpecs.find((k) => k.kind === kind)
 export function publishIssues(kind: string, data: Record<string, string>, name: string): string[] {
   const spec = kindSpec(kind);
   const issues = spec.fields.filter((f) => f.publish && !(data[f.key] || '').trim()).map((f) => f.label);
+  if (kind === 'student_voice' && !(data.video_file || '').trim() && !(data.video_url || '').trim())
+    issues.push('Video file or link');
   if (kind === 'legal' && !(data.file || '').trim() && !(data.body || '').trim())
     issues.push('Document file or text');
   if (!name.trim()) issues.push(spec.nameLabel);
