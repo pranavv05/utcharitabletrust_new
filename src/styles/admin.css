@@ -3038,3 +3038,29 @@ html[data-theme='dark'] .admin-login {
     height: 24px;
   }
 }
+
+/* Gallery bulk upload and inline captions */
+.admin-bulk-list {
+  max-height: 340px;
+  overflow: auto;
+}
+.admin-bulk-bar progress {
+  flex: 1;
+  min-width: 140px;
+  height: 10px;
+}
+.admin-inline-caption {
+  width: 100%;
+  min-width: 180px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.admin-inline-caption:hover,
+.admin-inline-caption:focus {
+  border-color: var(--a-line);
+  background: color-mix(in srgb, var(--a-card, #fff) 80%, transparent);
+}

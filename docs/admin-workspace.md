@@ -103,6 +103,17 @@ Administrators manage every public section from **Website content** (add, edit, 
 
 Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (MP4/WebM, 50 MB) are uploaded by the browser straight to storage with a one-time signed link created by an administrator. Uploaded files have public addresses even while attached to drafts. The migration `20261122120000_cms_sections.sql` also raises the storage bucket limit to 50 MB and allows PDF, MP4 and WebM. Permanent delete removes the content record only, not the uploaded file in storage; the activity log keeps a copy of the deleted record.
 
+## Adding many photographs at once
+
+**Website content → Gallery → Bulk upload photographs.** Select all the photos (Ctrl+A in the folder), choose a category, an optional year and an optional programme for the whole batch, and press Start.
+
+- Each photo is shrunk in the browser to at most 1600 px on its longest side and saved as WebP, so a 4 MB phone photo becomes a few hundred KB. The original is never uploaded; keep your originals on your own computer.
+- Every photo is published straight away as a gallery item. The caption comes from the file name (`blood-camp-2024-01.jpg` becomes "Blood camp 2024 01"); camera names such as `IMG_20240315_101500` become "Photograph". Edit any caption in the dialog before starting, or afterwards by typing in the Caption column of the gallery list.
+- Upload one event at a time, with a clear folder name or file names, so the captions are meaningful and one year and category fit the whole batch. Name files so they sort in the order you want (`01`, `02`, ...).
+- Three photos upload at once. If some fail (for example an unsupported phone format such as HEIC; export it as JPEG first), the others still publish, and **Retry failed** tries only the failed ones.
+- To remove mistakes, tick the photos in the list and use **Delete N photographs**. Their image files are removed from storage as well. **Set year for N photographs** assigns a year to selected photos later.
+- 200 photos at about 300 KB each use roughly 60 MB of storage.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).
