@@ -123,6 +123,10 @@ Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (
 - **Removing a video:** open it and set Visibility to Archived or Draft (it leaves the website immediately and can be restored), or delete it permanently with the bin icon. Several can be ticked and deleted together. Deleting also removes the video and preview files from storage.
 - Needs migration `20261123100000_student_voices.sql` (new content type and the public issued-books count). Until it is applied the section and the count simply do not appear.
 
+### Cleaning up unused uploaded files
+
+If uploads fail part-way (for example before a migration was applied), the files they already sent stay in storage with nothing pointing to them. `node scripts/clean-orphan-media.mjs` lists those files and their total size; it deletes nothing. `node scripts/clean-orphan-media.mjs --delete` removes exactly the listed files. It needs `DATABASE_URL` and `PGSSLROOTCERT` in `.env.local`, and for `--delete` also `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. It never touches files younger than 10 minutes or files any content record uses, and it refuses to delete if no record points to any file. Delete `.env.local` afterwards.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).
