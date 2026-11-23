@@ -4,8 +4,9 @@ import {useEffect, type RefObject} from 'react';
 /**
  * Makes a horizontally scrollable row drift by itself from left to right, forever.
  *
- * The row (or, with `nested`, the track inside it) must contain its items twice in a row (the second copy is what makes the loop seamless);
- * `count` is how many items one copy has. Scrolling by hand, the Previous/Next buttons, hovering,
+ * The row (or, with `nested`, the track inside it) must contain its `count` items followed by a repeat of the
+ * first `copies` of them (all of them by default). The repeat is what makes the loop seamless, so it must be
+ * long enough to fill the screen. Scrolling by hand, the Previous/Next buttons, hovering,
  * keyboard focus and touching all pause the drift, and it carries on a couple of seconds after the
  * visitor stops. It never runs for people who prefer reduced motion, while the row is off screen or
  * while the tab is in the background. Pass `enabled: false` to leave the row alone.
@@ -17,7 +18,8 @@ export function useAutoDrift(
     count,
     speed = 38,
     nested = false,
-  }: {enabled: boolean; count: number; speed?: number; nested?: boolean},
+    copies = count,
+  }: {enabled: boolean; count: number; speed?: number; nested?: boolean; copies?: number},
 ) {
   useEffect(() => {
     const row = ref.current;
@@ -26,7 +28,7 @@ export function useAutoDrift(
     // `nested`: the items sit inside a single track element within the scrolling row.
     const list = nested ? row.firstElementChild : row;
     const items = Array.from(list?.children ?? []) as HTMLElement[];
-    if (items.length < count * 2) return;
+    if (items.length < count + Math.max(1, Math.min(copies, count))) return;
 
     // One copy's width: how far the second copy starts after the first.
     const loop = () => items[count].offsetLeft - items[0].offsetLeft;
@@ -60,7 +62,7 @@ export function useAutoDrift(
       let at = row.scrollLeft;
       if (width > 0) {
         if (at <= 1) at += width;
-        else if (at >= row.scrollWidth - row.clientWidth - 1) at -= width;
+        else if (at >= width) at -= width;
         if (at !== row.scrollLeft) row.scrollLeft = at;
       }
       position = at;
@@ -100,5 +102,5 @@ export function useAutoDrift(
       row.removeEventListener('focusin', onFocusIn);
       row.removeEventListener('focusout', onFocusOut);
     };
-  }, [ref, enabled, count, speed, nested]);
+  }, [ref, enabled, count, speed, nested, copies]);
 }

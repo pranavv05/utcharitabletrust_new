@@ -245,11 +245,23 @@ export function StudentVoiceGrid({voices}: {voices: StudentVoice[]}) {
 export function StudentVoiceMarquee({voices}: {voices: StudentVoice[]}) {
   const seconds = Math.max(40, voices.length * 7);
   const {open, setOpen, viewer} = useStudentViewer(voices, true);
+  // The strip only moves while it is on screen, so it costs nothing the rest of the time.
+  const strip = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const element = strip.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
+      rootMargin: '200px',
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   return (
     <>
-      <div className="sx-voice-marquee" aria-label="Student videos">
+      <div className="sx-voice-marquee" aria-label="Student videos" ref={strip}>
         <div
-          className={'sx-voice-track' + (open !== null ? ' paused' : '')}
+          className={'sx-voice-track' + (open !== null || !visible ? ' paused' : '')}
           style={{animationDuration: seconds + 's'}}
         >
           <div className="sx-voice-set">

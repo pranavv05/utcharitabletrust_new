@@ -20,7 +20,15 @@ export async function Programmes() {
             Discover how we stand with our community.
           </p>
         </div>
-        <ProgrammeSlider programmes={programmes} />
+        <ProgrammeSlider
+          programmes={programmes.map((p) => ({
+            slug: p.slug,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            color: p.color,
+          }))}
+        />
       </div>
     </section>
   );

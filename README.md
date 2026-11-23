@@ -60,6 +60,13 @@ NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE
 
 You can then sign in at `/login` and use every admin screen, including saving, uploading and deleting, without touching any real project. It is for local testing only; Realtime is not provided, so live updates fall back to polling. If Windows refuses the default port (some ports are reserved after a restart), run it with another one, for example `PORT=18321 node scripts/local-test-backend.mjs`, and use that port in `NEXT_PUBLIC_SUPABASE_URL`. It emulates Supabase closely enough for this app but is not a replacement for checking on a real project.
 
+## Keeping the website fast
+
+- **Keep the shared page data tiny.** `SiteContentProvider` (in the site layout) is sent to the browser with every page, so it holds only the ISO details and a programme count. A page that shows a long list (the gallery, the student videos, the team) fetches it itself and passes only the fields it displays as props.
+- **Rows that scroll forever repeat only a few items** at the end (enough to fill the widest screen), not the whole list, so 200 photographs do not mean 400 pictures on the page (`src/lib/use-auto-drift.ts`, `moments-reel.tsx`).
+- **No blur or backdrop filters on repeated items**, and a loop that is off screen does not run.
+- **Image quality** passed to `next/image` must be 75 or 85 (`images.qualities` in `next.config.ts`); any other value makes the image fail to load.
+
 ## Verification
 
 ```sh

@@ -5,7 +5,9 @@ import {useRef} from 'react';
 import type {programmes as ProgrammeData} from '@/lib/content';
 import {useAutoDrift} from '@/lib/use-auto-drift';
 
-type Programme = (typeof ProgrammeData)[number];
+type Programme = Pick<(typeof ProgrammeData)[number], 'slug' | 'name' | 'description' | 'image' | 'color'>;
+/** Enough repeated cards to fill the widest screen, so the loop is seamless without doubling the row. */
+const COPIES = 4;
 
 /** With this many programmes or fewer they all fit on a wide screen, so nothing needs to move. */
 const FITS_ON_SCREEN = 3;
@@ -38,7 +40,8 @@ function Slide({programme: p, copy}: {programme: Programme; copy: boolean}) {
 export function ProgrammeSlider({programmes}: {programmes: Programme[]}) {
   const rail = useRef<HTMLDivElement>(null);
   const drifting = programmes.length > FITS_ON_SCREEN;
-  useAutoDrift(rail, {enabled: drifting, count: programmes.length});
+  const copies = Math.min(COPIES, programmes.length);
+  useAutoDrift(rail, {enabled: drifting, count: programmes.length, copies});
   function move(direction: number) {
     const el = rail.current;
     if (el)
@@ -62,7 +65,8 @@ export function ProgrammeSlider({programmes}: {programmes: Programme[]}) {
         {programmes.map((p) => (
           <Slide key={p.slug} programme={p} copy={false} />
         ))}
-        {drifting && programmes.map((p) => <Slide key={'copy-' + p.slug} programme={p} copy />)}
+        {drifting &&
+          programmes.slice(0, copies).map((p) => <Slide key={'copy-' + p.slug} programme={p} copy />)}
       </div>
       <div className="programme-slider-footer">
         <div className="slider-buttons">

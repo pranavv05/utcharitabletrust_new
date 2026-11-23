@@ -3,13 +3,12 @@ import Link from 'next/link';
 import {TrustImage} from '@/components/ui/trust-image';
 import {useState, useEffect, useRef} from 'react';
 import {X, ChevronLeft, ChevronRight} from 'lucide-react';
-import {useSiteContent} from './site-content-provider';
+import type {SiteContent} from '@/lib/site-content';
 import {gsap, useGSAP} from '@/lib/motion';
 import {YearFilter} from '@/components/year-filter';
 import {byYear, yearsOf, type YearFilter as YearValue} from '@/lib/media';
 const PAGE_SIZE = 24;
-export function Gallery() {
-  const {gallery} = useSiteContent();
+export function Gallery({gallery}: {gallery: SiteContent['gallery']}) {
   const [category, setCategory] = useState('All photos');
   const [sort, setSort] = useState('featured');
   const [year, setYear] = useState<YearValue>('all');

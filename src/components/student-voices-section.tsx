@@ -43,7 +43,21 @@ export async function StudentVoicesSection() {
 export async function HomeStudentVoices() {
   const [{studentVoices}, stats] = await Promise.all([getSiteContent(), getBookStats()]);
   if (!studentVoices.length) return null;
-  const ordered = [...studentVoices.filter((v) => v.featured), ...studentVoices.filter((v) => !v.featured)];
+  // The home strip shows only the video, so names and words are not sent to the browser.
+  const ordered = [
+    ...studentVoices.filter((v) => v.featured),
+    ...studentVoices.filter((v) => !v.featured),
+  ].map((v) => ({
+    id: v.id,
+    name: '',
+    quote: '',
+    role: '',
+    year: '',
+    image: v.image,
+    videoUrl: v.videoUrl,
+    videoFile: v.videoFile,
+    featured: v.featured,
+  }));
   return (
     <section className="sx-testimonials" aria-labelledby="home-voices-title">
       <div className="experience-container">

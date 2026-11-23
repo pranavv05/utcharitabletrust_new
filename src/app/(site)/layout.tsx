@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export default async function SiteLayout({children}: {children: React.ReactNode}) {
   const content = await getSiteContent();
   return (
-    <SiteContentProvider value={content}>
+    <SiteContentProvider value={{iso: content.iso, programmeCount: content.programmes.length}}>
       <PublicTheme />
       <SiteLive />
       <SmoothScroll>
