@@ -1,105 +1,120 @@
 'use client';
 import {useMemo, useState} from 'react';
-import {TrustImage} from './ui/trust-image';
-import type {SiteContent} from '@/lib/site-content';
-const rank = (role: string) =>
-  role === 'Chairman'
-    ? 0
-    : role === 'Advisory Board Chairman'
-      ? 1
-      : role === 'President'
-        ? 2
-        : /president|chair|trustee|secretary|treasurer|director/i.test(role)
-          ? 3
-          : 10;
-export function TeamDirectory({team}: {team: SiteContent['team']}) {
-  const [role, setRole] = useState('Leadership');
-  const [sort, setSort] = useState('seniority');
-  const [query, setQuery] = useState('');
-  const roles = useMemo(
-    () =>
-      Array.from(new Set(team.map((p) => p.role))).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b)),
-    [team],
-  );
-  const needle = query.trim().toLowerCase();
-  const people = team
-    // A search looks across everyone, whichever role is selected.
-    .filter((p) =>
-      needle
-        ? (p.name + ' ' + p.role + ' ' + (p.bio || '')).toLowerCase().includes(needle)
-        : role === 'Leadership'
-          ? rank(p.role) < 10
-          : p.role === role,
-    )
-    .toSorted((a, b) =>
-      sort === 'name'
-        ? a.name.localeCompare(b.name)
-        : sort === 'name-desc'
-          ? b.name.localeCompare(a.name)
-          : rank(a.role) - rank(b.role),
-    );
+import Image from 'next/image';
+import {Search} from 'lucide-react';
+import type {SiteContent, TeamMember} from '@/lib/site-content';
+import {uniquePeople} from '@/lib/media';
+import {groupTeam, hasPhoto, initials, isLeader, type TeamGroup} from '@/lib/team';
+
+type Tab = 'all' | TeamGroup;
+
+function Person({member, index}: {member: TeamMember; index: number}) {
   return (
-    <div className="team-directory">
-      <div className="directory-toolbar">
-        <div className="team-role-filters" role="group" aria-label="Filter members by role">
-          {['Leadership', ...roles].map((r) => (
-            <button
-              className={r === role ? 'active' : ''}
-              key={r}
-              aria-pressed={r === role}
-              onClick={() => setRole(r)}
-            >
-              {r === 'Trust member' ? 'Trust members' : r}
-            </button>
-          ))}
-        </div>
-        <label>
-          Search people
+    <article
+      className={'team-person' + (isLeader(member) ? ' leader' : '')}
+      style={{'--i': index % 8} as React.CSSProperties}
+    >
+      <div className="team-person-photo">
+        {hasPhoto(member.image) ? (
+          <Image src={member.image} alt={member.name} fill sizes="(max-width: 700px) 46vw, 260px" />
+        ) : (
+          <span className="team-person-initials" role="img" aria-label={member.name}>
+            {initials(member.name)}
+          </span>
+        )}
+      </div>
+      <div className="team-person-text">
+        <h3>{member.name}</h3>
+        <p className="team-person-role">{member.role}</p>
+        {member.bio && <p className="team-bio">{member.bio}</p>}
+      </div>
+    </article>
+  );
+}
+
+/**
+ * The Our people page: everyone grouped as on the trust's member page (Trustees, Advisory Board, Mentors and
+ * Working Body), with a count for each group, a search across everyone and leaders marked out.
+ */
+export function TeamDirectory({team}: {team: SiteContent['team']}) {
+  const [tab, setTab] = useState<Tab>('all');
+  const [query, setQuery] = useState('');
+  const everyone = useMemo(() => uniquePeople(team), [team]);
+  const groups = useMemo(() => groupTeam(everyone), [everyone]);
+  const needle = query.trim().toLowerCase();
+  const visible = groups
+    .filter((g) => needle || tab === 'all' || g.group.id === tab)
+    .map((g) => ({
+      ...g,
+      people: g.people.filter(
+        (p) => !needle || (p.name + ' ' + p.role + ' ' + (p.bio || '')).toLowerCase().includes(needle),
+      ),
+    }))
+    .filter((g) => g.people.length > 0);
+  const found = visible.reduce((sum, g) => sum + g.people.length, 0);
+  return (
+    <div className="team-hub">
+      <div className="team-summary">
+        <p>
+          <strong>{everyone.length}</strong> people in {groups.length} groups, giving their time and care to
+          the trust.
+        </p>
+        <label className="team-search">
+          <Search size={18} aria-hidden="true" />
+          <span className="team-sr">Search people</span>
           <input
             type="search"
             value={query}
-            placeholder="Name or role"
+            placeholder="Search by name or role"
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <label>
-          Sort by
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="seniority">Leadership order</option>
-            <option value="name">Name: A–Z</option>
-            <option value="name-desc">Name: Z–A</option>
-          </select>
-        </label>
       </div>
-      <div className="directory-heading">
-        <h2>
-          {needle
-            ? `Results for “${query.trim()}”`
-            : role === 'Leadership'
-              ? 'Guiding the trust'
-              : role === 'Trust member'
-                ? 'Our trust members'
-                : role}
-        </h2>
-        <p>
-          {role === 'Leadership'
-            ? 'Meet the people leading our shared purpose. Select a role above to discover the wider team.'
-            : 'The people contributing their time, care and commitment to our work.'}
-        </p>
-      </div>
-      <div className="team-grid" aria-live="polite">
-        {people.map((m, i) => (
-          <article className="team-card" key={m.name + i}>
-            <TrustImage src={m.image} alt={m.name} loading="lazy" />
-            <h3>{m.name}</h3>
-            <p>{m.role}</p>
-            {m.bio && <p className="team-bio">{m.bio}</p>}
-          </article>
+      <div className="team-tabs" role="group" aria-label="Show a group of people">
+        <button type="button" aria-pressed={tab === 'all' && !needle} onClick={() => setTab('all')}>
+          <strong>{everyone.length}</strong>
+          <span>Everyone</span>
+        </button>
+        {groups.map((g) => (
+          <button
+            type="button"
+            key={g.group.id}
+            aria-pressed={tab === g.group.id && !needle}
+            onClick={() => {
+              setTab(g.group.id);
+              setQuery('');
+            }}
+          >
+            <strong>{g.people.length}</strong>
+            <span>{g.group.tab}</span>
+          </button>
         ))}
       </div>
-      {!people.length && (
-        <p>{needle ? 'Nobody matches that search.' : 'No published profiles for this role yet.'}</p>
-      )}
+      <div aria-live="polite">
+        {needle && (
+          <p className="team-found">
+            {found
+              ? `${found} ${found === 1 ? 'person matches' : 'people match'} “${query.trim()}”`
+              : `Nobody matches “${query.trim()}”.`}
+          </p>
+        )}
+        {visible.map(({group, people}) => (
+          <section className="team-group" key={group.id} aria-labelledby={'team-group-' + group.id}>
+            <header className="team-group-head">
+              <div>
+                <h2 id={'team-group-' + group.id}>{group.label}</h2>
+                <p>{group.about}</p>
+              </div>
+              <span className="team-count">{people.length}</span>
+            </header>
+            <div className="team-people">
+              {people.map((m, i) => (
+                <Person key={m.name + m.image} member={m} index={i} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }

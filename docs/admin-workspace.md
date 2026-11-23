@@ -131,6 +131,14 @@ If uploads fail part-way (for example before a migration was applied), the files
 
 Both rows drift across the screen by themselves, from left to right, and pause when someone points at them, tabs into them or uses the Previous/Next buttons. They stay still (and can be scrolled by hand) for visitors who prefer reduced motion. "People. Not just pictures." shows every published Gallery photograph in equal-sized frames, with the number of trust members, interns and partners slipped in (these come from Team, Intern colleges and Partners, and a count with nothing behind it is left out). "Care takes many forms" shows every published programme. The student videos have their own strip, "Students, in their words", which shows all published videos and opens each in a large viewer without names.
 
+## The Our people page and its groups
+
+The Our people page (`/team`) shows everyone in four groups, as on the trust's old member page: **Trustees**, **Advisory Board**, **Our Mentors** and **Working Body**. Each group has a heading, a count, and its people in the order set by **Display order**. A search box looks across everyone, and the counts at the top switch between groups. Chairmen and presidents are highlighted, and anyone without a real photograph gets their initials instead of a grey placeholder.
+
+- **Website content → Team:** every person has a **Group** (which section they appear in) and a **Role / responsibility** (the label under the name, for example Chairman or President). A person with no group appears in a final "Our team" section, so nobody disappears.
+- **Photographs:** a photograph named `blank.webp` is treated as "no photograph" and shows initials. Upload a real photo to replace it.
+- **Migration `20261123110000_team_groups.sql`** puts the existing 44 entries into their groups, corrects three names (Dr. G L Chaudhary, Mr. Priyanksinh I Parmar, Mr. Prem Prakash Singh) and three photographs (Durgesh Rajpurohit, Mohan K.S, Priyanksinh I Parmar), adds Dr. Laxman Rohit, and removes the two exact duplicate entries (Dinkar Dubey and Rahul Shah). An entry you have already edited is left alone.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).

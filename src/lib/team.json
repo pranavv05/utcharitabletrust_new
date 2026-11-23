@@ -2,231 +2,271 @@
   {
     "name": "Mr. Pradip Mishra",
     "role": "Chairman",
+    "group": "trustee",
     "image": "/images/team/team-v1-1.webp"
   },
   {
     "name": "Adv. Prakashchandra N. Patel",
-    "role": "Trust member",
+    "role": "Trustee",
+    "group": "trustee",
     "image": "/images/team/team-v1-2.webp"
   },
   {
     "name": "Mrs. Rupa Mishra",
-    "role": "Trust member",
+    "role": "Trustee",
+    "group": "trustee",
     "image": "/images/team/team-v1-5.webp"
   },
   {
     "name": "Mr. Chandan Kumar Mishra",
-    "role": "Trust member",
+    "role": "Trustee",
+    "group": "trustee",
     "image": "/images/team/team-v1-3.webp"
   },
   {
     "name": "Mr. Anand Kumar Jha",
-    "role": "Trust member",
+    "role": "Trustee",
+    "group": "trustee",
     "image": "/images/team/team-v1-4.webp"
   },
   {
     "name": "Mr. Navindra Mishra",
-    "role": "Trust member",
+    "role": "Trustee",
+    "group": "trustee",
     "image": "/images/team/navindra_mishra.webp"
   },
   {
     "name": "Dr.K.S. Chandrashekhar",
     "role": "Advisory Board Chairman",
+    "group": "advisory",
     "image": "/images/team/chandras.webp"
   },
   {
     "name": "Mr. Nagendra Singh",
-    "role": "Trust member",
+    "role": "Advisory Board member",
+    "group": "advisory",
     "image": "/images/team/nagendra_mishra.webp"
   },
   {
     "name": "Mrs. Pinky Khimani",
-    "role": "Trust member",
+    "role": "Advisory Board member",
+    "group": "advisory",
     "image": "/images/team/pinky_khimani.webp"
   },
   {
     "name": "Mr. Surya Prakash Agarwal",
-    "role": "Trust member",
+    "role": "Advisory Board member",
+    "group": "advisory",
     "image": "/images/team/surya_prakash.webp"
   },
   {
     "name": "Mr. Sanjeev Bhuwalka",
-    "role": "Trust member",
+    "role": "Advisory Board member",
+    "group": "advisory",
     "image": "/images/team/sanjeev.webp"
   },
   {
     "name": "Mr. Anil Dixit",
-    "role": "Trust member",
+    "role": "Advisory Board member",
+    "group": "advisory",
     "image": "/images/team/anil_dixit.webp"
   },
   {
     "name": "Mr. Dilip Barnwal",
-    "role": "Trust member",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/dilip_barnwal.webp"
   },
   {
     "name": "Mr. Durgesh Rajpurohit",
-    "role": "Trust member",
-    "image": "/images/team/blank.webp"
+    "role": "Mentor",
+    "group": "mentor",
+    "image": "/images/team/durgesh.webp"
   },
   {
     "name": "Mr. Kapil Kanodiya",
-    "role": "Trust member",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/blank.webp"
   },
   {
-    "name": "Dr. G L Patel",
-    "role": "Trust member",
+    "name": "Dr. Laxman Rohit",
+    "role": "Mentor",
+    "group": "mentor",
+    "image": "/images/team/lakshman_rohit.webp"
+  },
+  {
+    "name": "Dr. G L Chaudhary",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/G_L_patel.webp"
   },
   {
     "name": "Mr. Sanjay Singh",
-    "role": "Trust member",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/sanjay_singh.webp"
   },
   {
     "name": "Ms. Rashmi Nair",
-    "role": "Trust member",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/rashmi.webp"
   },
   {
     "name": "Mr. Rajeev Ranjan",
-    "role": "Trust member",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/rajjev_ranjan.webp"
   },
   {
     "name": "Dr. Rajesh Shah",
-    "role": "Trust member",
+    "role": "Mentor",
+    "group": "mentor",
     "image": "/images/team/blank.webp"
   },
   {
     "name": "Mr. Mohan K.S",
-    "role": "Trust member",
-    "image": "/images/team/blank.webp"
+    "role": "Mentor",
+    "group": "mentor",
+    "image": "/images/team/Mohan_k.s.webp"
   },
   {
-    "name": "Mr. Priyank Singh Parmar",
-    "role": "Trust member",
-    "image": "/images/team/blank.webp"
+    "name": "Mr. Priyanksinh I Parmar",
+    "role": "Mentor",
+    "group": "mentor",
+    "image": "/images/team/priyanksingh.webp"
   },
   {
     "name": "Mr. Dhiraj Kumar Singh",
     "role": "President",
+    "group": "working",
     "image": "/images/team/dhiraj.webp"
   },
   {
     "name": "Mr. Jagdish Singh Kang",
     "role": "Raktveer President",
+    "group": "working",
     "image": "/images/team/jagdish.webp"
   },
   {
     "name": "Ms. Prabha Kathiria",
     "role": "Narishakti President",
+    "group": "working",
     "image": "/images/team/prabha.webp"
   },
   {
     "name": "Mr. Bipin Tiwari",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/bipin_tiwari.webp"
   },
   {
     "name": "Mr. Ravi Shankar Pandey",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/team-v1-10.webp"
   },
   {
     "name": "Mr. Rahul Shah",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/rahul_shah.webp"
   },
   {
     "name": "Mr. Jatin Mistry",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/jatin_mistry.webp"
   },
   {
     "name": "Mr. Biswaranjan Muderla",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/bhiswaranjan.webp"
   },
   {
     "name": "Mr. Dilip Pusti",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/team-v1-14.webp"
   },
   {
     "name": "Mr. Kumarkant Jha",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/kumar_kanat.webp"
   },
   {
     "name": "Mr. Ram Raksha Sonkar",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/ram_sonar.webp"
   },
   {
     "name": "Mr. Pankaj Jha",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/team-v1-7.webp"
   },
   {
     "name": "Mr. Sudhir Jha",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/sudhir_jha.webp"
   },
   {
     "name": "Mr. Sadik Meghani",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/team-v1-8.webp"
   },
   {
     "name": "Mr. Biswanath Mishra",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/blank.webp"
   },
   {
     "name": "Mr. Gopal Agarwal",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/gopal.webp"
   },
   {
     "name": "Mr. Murlidhar Mali",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/murlidhar.webp"
   },
   {
     "name": "Mr. Dinkar Dubey",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/dinkar.webp"
   },
   {
     "name": "Mr. Manthan Bhanushali",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/mathan_bhanushali.webp"
   },
   {
     "name": "Mr. Pyarelal Sinsinwar",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/blank.webp"
   },
   {
     "name": "Mr. Munna Lal Shah",
-    "role": "Trust member",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/munna_lal.webp"
   },
   {
-    "name": "Mr. Dinkar Dubey",
-    "role": "Trust member",
-    "image": "/images/team/dinkar.webp"
-  },
-  {
-    "name": "Mr. Prem Prakash Patel",
-    "role": "Trust member",
+    "name": "Mr. Prem Prakash Singh",
+    "role": "Working Body member",
+    "group": "working",
     "image": "/images/team/prem.webp"
-  },
-  {
-    "name": "Mr. Rahul Shah",
-    "role": "Trust member",
-    "image": "/images/team/rahul_shah.webp"
   }
 ]

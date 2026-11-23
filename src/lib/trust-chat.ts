@@ -1,5 +1,6 @@
 import {trustContacts, whatsappLink, gmailLink, mapsLink} from './contact-links';
 import type {SiteContent} from './site-content';
+import {isLeader, teamGroups} from './team';
 export type ChatLink = {label: string; href: string};
 export type ChatReply = {message: string; links: ChatLink[]; mode: 'guide' | 'groq'};
 const programmeHref = (slug: string) => (slug === 'book-bank' ? '/book-bank' : '/our-work/' + slug);
@@ -33,11 +34,11 @@ export function guideReply(question: string, site: SiteContent): ChatReply {
       {label: 'Write in Gmail', href: gmailLink()},
     ];
   } else if (/chair|president|leadership|who leads|team/.test(q)) {
-    const leaders = site.team.filter((p) => p.role !== 'Trust member');
+    const leaders = site.team.filter(isLeader);
     message =
       'The published leadership profiles include ' +
       leaders.map((p) => p.name + ' (' + p.role + ')').join(', ') +
-      '. You can filter the people page by role to meet the wider team.';
+      '. The people page groups everyone into Trustees, the Advisory Board, Mentors and the Working Body.';
     links = [{label: 'Meet our leadership', href: '/team'}];
   } else if (/volunteer|membership|become a member|join|partner/.test(q)) {
     message =
@@ -107,7 +108,11 @@ export function chatContext(site: SiteContent) {
       body: p.body,
       url: programmeHref(p.slug),
     })),
-    people: site.team.map((p) => ({name: p.name, role: p.role})),
+    people: site.team.map((p) => ({
+      name: p.name,
+      role: p.role,
+      group: teamGroups.find((g) => g.id === p.group)?.label ?? '',
+    })),
     pages: {story: '/about', people: '/team', gallery: '/gallery', membership: '/join', contact: '/contact'},
     announcements: site.announcements.map((a) => ({name: a.name, body: a.body, link: a.link})),
     operations:

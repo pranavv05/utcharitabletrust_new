@@ -4,8 +4,9 @@ import {programmes, gallery, isContentNotDeployed} from '@/lib/content';
 import team from '@/lib/team.json';
 import {photoDetails, photoCategory} from './photos';
 import {photoList, yearOf} from './media';
+import {normalizeGroup, type TeamGroup} from './team';
 
-export type TeamMember = {name: string; role: string; image: string; bio?: string};
+export type TeamMember = {name: string; role: string; image: string; group: TeamGroup; bio?: string};
 export type NewsItem = {
   id: string;
   slug: string;
@@ -107,7 +108,10 @@ const certificates = [1, 2, 4, 5];
 export const fallbackContent: SiteContent = {
   programmes,
   gallery,
-  team,
+  team: (team as {name: string; role: string; image: string; group: string}[]).map((m) => ({
+    ...m,
+    group: normalizeGroup(m.group),
+  })),
   announcements: [],
   news: [],
   testimonials: [],
@@ -158,6 +162,7 @@ export function mapContent(rows: Entry[]): SiteContent {
       name: r.name,
       role: r.data.role || '',
       image: r.data.image,
+      group: normalizeGroup(r.data.group),
       ...(r.data.bio ? {bio: r.data.bio} : {}),
     })),
     announcements: of('announcement').map((r) => ({
