@@ -211,7 +211,136 @@ export function RecordPicker({
     </div>
   );
 }
-function SaveForm({section, row, onDone}: {section: Section; row: Row | null; onDone: () => void}) {
+/**
+ * Changing a copy's UTBN (the number printed on its label). Only administrators can; the number must be unused,
+ * a copy that is out on loan cannot be renumbered, and every change is recorded in the activity log.
+ */
+function UtbnChange({row, isAdmin, onDone}: {row: Row; isAdmin: boolean; onDone: () => void}) {
+  const current = Number(row.utbn);
+  const [value, setValue] = useState(String(row.utbn ?? ''));
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [sharedWith, setSharedWith] = useState<string[]>([]);
+  const issued = row.status === 'issue';
+  // Older records may repeat a number; point that out so one of the copies can be given a new one.
+  useEffect(() => {
+    let live = true;
+    fetch('/api/admin/books?search=' + encodeURIComponent(String(row.utbn)))
+      .then((r) => r.json())
+      .then((data: {rows?: Row[]}) => {
+        if (!live) return;
+        setSharedWith(
+          (data.rows || [])
+            .filter((r) => r.id !== row.id && Number(r.utbn) === current)
+            .map((r) => String(r.bookName)),
+        );
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [row.id, row.utbn, current]);
+  const next = Number(value);
+  const valid = /^[0-9]{1,8}$/.test(value.trim()) && next >= 1 && next !== current;
+  async function change() {
+    setBusy(true);
+    setError('');
+    try {
+      await send('utbn', {id: row.id, utbn: value.trim()});
+      onDone();
+    } catch (e) {
+      setError((e as Error).message);
+      setConfirming(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="admin-utbn" aria-labelledby="utbn-title">
+      <h3 id="utbn-title">Copy number (UTBN)</h3>
+      <p className="admin-form-help">
+        The number on this copy&apos;s label. Every copy has its own number, so two books can never share one.
+      </p>
+      {sharedWith.length > 0 && (
+        <p className="admin-notice error" role="alert">
+          UTBN {current} is also used by {sharedWith.join(', ')}. Give one of these copies a new number.
+        </p>
+      )}
+      {!isAdmin ? (
+        <p>
+          <strong>UTBN {String(row.utbn)}</strong> · Only an administrator can change it.
+        </p>
+      ) : issued ? (
+        <p>
+          <strong>UTBN {String(row.utbn)}</strong> · This copy is issued. Return it before changing its
+          number.
+        </p>
+      ) : (
+        <>
+          <div className="admin-utbn-row">
+            <label>
+              <span className="admin-visually-hidden">New UTBN</span>
+              <input
+                inputMode="numeric"
+                maxLength={8}
+                value={value}
+                disabled={busy}
+                onChange={(e) => {
+                  setValue(e.target.value.replace(/\D/g, ''));
+                  setConfirming(false);
+                  setError('');
+                }}
+              />
+            </label>
+            {!confirming ? (
+              <button
+                type="button"
+                className="admin-button secondary"
+                disabled={!valid}
+                onClick={() => setConfirming(true)}
+              >
+                Change number
+              </button>
+            ) : (
+              <>
+                <button type="button" className="admin-button primary" disabled={busy} onClick={change}>
+                  {busy ? 'Changing…' : `Yes, change ${current} to ${next}`}
+                </button>
+                <button
+                  type="button"
+                  className="admin-button secondary"
+                  disabled={busy}
+                  onClick={() => setConfirming(false)}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+          {confirming && (
+            <p className="admin-form-help">
+              The label on the book and receipts already printed still show {current}. Print a new label after
+              changing it.
+            </p>
+          )}
+          <ErrorMessage message={error} />
+        </>
+      )}
+    </section>
+  );
+}
+function SaveForm({
+  section,
+  row,
+  isAdmin,
+  onDone,
+}: {
+  section: Section;
+  row: Row | null;
+  isAdmin: boolean;
+  onDone: () => void;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const fields: Field[] = sections[section].fields;
@@ -230,55 +359,62 @@ function SaveForm({section, row, onDone}: {section: Section; row: Row | null; on
     }
   }
   return (
-    <form className="admin-form" onSubmit={submit}>
-      <div className="admin-form-grid">
-        {fields.map((f) => (
-          <label key={f.key} className={f.type === 'textarea' ? 'full' : ''}>
-            {f.label}
-            {f.required && <span className="admin-required"> *</span>}
-            {f.options ? (
-              <select name={f.key} defaultValue={String(row?.[f.key] ?? f.options[0])} required={f.required}>
-                {f.options.map((x) => (
-                  <option key={x} value={x}>
-                    {x ? display(x) : 'Not specified'}
-                  </option>
-                ))}
-              </select>
-            ) : f.type === 'textarea' ? (
-              <textarea
-                name={f.key}
-                defaultValue={String(row?.[f.key] || '')}
-                required={f.required}
-                rows={3}
-                maxLength={f.key === 'purpose' ? 3000 : 400}
-              />
-            ) : (
-              <input
-                name={f.key}
-                defaultValue={String(row?.[f.key] || '')}
-                type={f.type || 'text'}
-                required={f.required}
-                maxLength={f.key === 'email' ? 254 : f.key === 'phone' ? 18 : 250}
-              />
-            )}
+    <>
+      <form className="admin-form" onSubmit={submit}>
+        <div className="admin-form-grid">
+          {fields.map((f) => (
+            <label key={f.key} className={f.type === 'textarea' ? 'full' : ''}>
+              {f.label}
+              {f.required && <span className="admin-required"> *</span>}
+              {f.options ? (
+                <select
+                  name={f.key}
+                  defaultValue={String(row?.[f.key] ?? f.options[0])}
+                  required={f.required}
+                >
+                  {f.options.map((x) => (
+                    <option key={x} value={x}>
+                      {x ? display(x) : 'Not specified'}
+                    </option>
+                  ))}
+                </select>
+              ) : f.type === 'textarea' ? (
+                <textarea
+                  name={f.key}
+                  defaultValue={String(row?.[f.key] || '')}
+                  required={f.required}
+                  rows={3}
+                  maxLength={f.key === 'purpose' ? 3000 : 400}
+                />
+              ) : (
+                <input
+                  name={f.key}
+                  defaultValue={String(row?.[f.key] || '')}
+                  type={f.type || 'text'}
+                  required={f.required}
+                  maxLength={f.key === 'email' ? 254 : f.key === 'phone' ? 18 : 250}
+                />
+              )}
+            </label>
+          ))}
+          <label>
+            Status
+            <select name="status" defaultValue={String(row?.status || 'active')}>
+              <option value="active">Active</option>
+              <option value="inactive">Archived</option>
+            </select>
           </label>
-        ))}
-        <label>
-          Status
-          <select name="status" defaultValue={String(row?.status || 'active')}>
-            <option value="active">Active</option>
-            <option value="inactive">Archived</option>
-          </select>
-        </label>
-      </div>
-      <ErrorMessage message={error} />
-      <div className="admin-form-footer">
-        <span>Changes are recorded in the activity log.</span>
-        <button className="admin-button primary" disabled={busy}>
-          {busy ? 'Saving…' : row ? 'Save changes' : 'Create record'}
-        </button>
-      </div>
-    </form>
+        </div>
+        <ErrorMessage message={error} />
+        <div className="admin-form-footer">
+          <span>Changes are recorded in the activity log.</span>
+          <button className="admin-button primary" disabled={busy}>
+            {busy ? 'Saving…' : row ? 'Save changes' : 'Create record'}
+          </button>
+        </div>
+      </form>
+      {section === 'books' && row && <UtbnChange row={row} isAdmin={isAdmin} onDone={onDone} />}
+    </>
   );
 }
 function DonationForm({onDone}: {onDone: (id: string) => void}) {
@@ -1163,7 +1299,7 @@ export function Workspace({
           onClose={close}
         >
           {canWrite ? (
-            <SaveForm section={section} row={row} onDone={() => saved()} />
+            <SaveForm section={section} row={row} isAdmin={isAdmin} onDone={() => saved()} />
           ) : (
             <dl className="admin-detail-list">
               {Object.entries(row || {}).map(([k, v]) => (

@@ -3241,3 +3241,32 @@ html[data-theme='dark'] .admin-login {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Changing a copy's UTBN */
+.admin-utbn {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--a-line);
+  border-radius: 14px;
+  background: var(--a-blue-soft);
+}
+.admin-utbn h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.admin-utbn p {
+  margin: 0;
+}
+.admin-utbn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.admin-utbn-row input {
+  width: 150px;
+  padding: 9px 12px;
+  font-variant-numeric: tabular-nums;
+}
