@@ -67,11 +67,9 @@ export async function Footer() {
         <div className="footer-wordmark" aria-label="UT Charitable Trust">
           Together<span>.</span>
         </div>
-        {iso && (
-          <div className="footer-iso">
-            <IsoBadge iso={iso} variant="line" />
-          </div>
-        )}
+        <div className="footer-iso">
+          <IsoBadge iso={iso} variant="line" />
+        </div>
         <div className="footer-copyright">
           <span>© {new Date().getFullYear()} UT Charitable Trust</span>
           <span>People. Purpose. Possibility.</span>

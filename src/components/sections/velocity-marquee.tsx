@@ -35,7 +35,7 @@ export function VelocityMarquee() {
       <div className="marquee-track">
         {Array.from({length: 4}, (_, index) => (
           <span key={index}>
-            A little care <i>✳</i> A world of possibility <i>✳</i>{' '}
+            A little care <i>✳</i> A world of possibility <i>✳</i> ISO certified trust <i>✳</i>{' '}
           </span>
         ))}
       </div>

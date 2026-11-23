@@ -38,6 +38,12 @@ export function guideReply(question: string, site: SiteContent): ChatReply {
       leaders.map((p) => p.name + ' (' + p.role + ')').join(', ') +
       '. The people page groups everyone into Trustees, the Advisory Board, Mentors and the Working Body.';
     links = [{label: 'Meet our leadership', href: '/team'}];
+  } else if (/\biso\b|certif|accredit/.test(q)) {
+    message =
+      'UT Charitable Trust is an ISO certified trust' +
+      (site.iso ? ' (' + site.iso.standard + ')' : '') +
+      '. You can see its certificates and registration documents on the Legal documents page.';
+    links = [{label: 'View our certification', href: '/legal#certification'}];
   } else if (/volunteer|membership|become a member|join|partner/.test(q)) {
     message =
       'You can offer your time, skills or resources through our community activities. Use the membership form to tell the trust about your interests and availability; the staff team reviews applications. For partnerships or a specific volunteering enquiry, choose the matching option on the contact page.';
@@ -111,6 +117,7 @@ export function chatContext(site: SiteContent) {
       role: p.role,
       group: teamGroups.find((g) => g.id === p.group)?.label ?? '',
     })),
+    certification: site.iso ? site.iso.standard + ' certified' : 'ISO certified trust',
     pages: {story: '/about', people: '/team', gallery: '/gallery', membership: '/join', contact: '/contact'},
     announcements: site.announcements.map((a) => ({name: a.name, body: a.body, link: a.link})),
     operations:

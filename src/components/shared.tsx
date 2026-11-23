@@ -1,7 +1,7 @@
 import {FitPhoto} from '@/components/ui/fit-photo';
 import {TrustImage} from '@/components/ui/trust-image';
 import Link from 'next/link';
-import {Heart, BookOpen, Droplets, Utensils, HandHeart, GraduationCap} from 'lucide-react';
+import {Heart, BookOpen, Droplets, Utensils, HandHeart, GraduationCap, BadgeCheck} from 'lucide-react';
 import {ProgrammeGrid} from '@/components/programme-grid';
 import {getSiteContent, type SiteContent} from '@/lib/site-content';
 export function PageIntro({
@@ -31,7 +31,8 @@ export async function ProgrammeCards({limit}: {limit?: number}) {
   const {programmes, gallery} = await getSiteContent();
   return <ProgrammeGrid programmes={programmes} gallery={gallery} limit={limit} />;
 }
-export function JoinBanner() {
+export async function JoinBanner() {
+  const {iso} = await getSiteContent();
   return (
     <section className="editorial-join">
       <div className="container editorial-join-inner" data-reveal>
@@ -55,6 +56,10 @@ export function JoinBanner() {
           <Link href="/contact" className="editorial-link">
             Let’s talk
           </Link>
+          <p className="editorial-iso">
+            <BadgeCheck size={16} aria-hidden="true" />{' '}
+            {iso ? iso.standard + ' certified' : 'An ISO certified trust'}
+          </p>
         </div>
       </div>
     </section>

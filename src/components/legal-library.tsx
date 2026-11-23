@@ -87,6 +87,21 @@ export function LegalLibrary({docs, iso}: {docs: LegalDoc[]; iso: IsoInfo | null
   const reportYears = useMemo(() => yearsOf(reports), [reports]);
   return (
     <>
+      {!iso && (
+        <section id="certification" className="sx-iso-card" aria-labelledby="iso-title">
+          <BadgeCheck size={36} aria-hidden="true" />
+          <div>
+            <h2 id="iso-title">ISO Certified Trust</h2>
+            <p>
+              UT Charitable Trust is an ISO certified trust. Please{' '}
+              <a className="text-link" href="/contact">
+                ask our team
+              </a>{' '}
+              for the certificate.
+            </p>
+          </div>
+        </section>
+      )}
       {iso && (
         <section id="certification" className="sx-iso-card" aria-labelledby="iso-title">
           <BadgeCheck size={36} aria-hidden="true" />
@@ -151,7 +166,7 @@ export function LegalLibrary({docs, iso}: {docs: LegalDoc[]; iso: IsoInfo | null
           </section>
         );
       })}
-      {!docs.length && !iso && <p className="gallery-empty">Documents will be published here soon.</p>}
+      {!docs.length && <p className="gallery-empty">Documents will be published here soon.</p>}
     </>
   );
 }
