@@ -11,7 +11,15 @@ type FitPhotoProps = Omit<ImageProps, 'fill' | 'width' | 'height' | 'className'>
 export function FitPhoto({src, alt, sizes, ...props}: FitPhotoProps) {
   return (
     <>
-      <Image className="fit-backdrop" src={src} alt="" aria-hidden="true" fill sizes="48px" loading="lazy" />
+      <Image
+        className="fit-backdrop"
+        src={src}
+        alt=""
+        aria-hidden="true"
+        fill
+        sizes="48px"
+        loading={props.loading ?? 'lazy'}
+      />
       <Image className="fit-main" src={src} alt={alt} fill sizes={sizes} {...props} />
     </>
   );
