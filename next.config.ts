@@ -11,7 +11,7 @@ const csp = [
   "font-src 'self' data:",
   `connect-src 'self'${supabase ? ` ${supabase.origin} wss://${supabase.host}` : ''}${dev ? ' ws:' : ''}`,
   'frame-src https://challenges.cloudflare.com https://maps.google.com https://www.google.com https://www.youtube-nocookie.com https://player.vimeo.com',
-  `media-src 'self'${supabase ? ' ' + supabase.origin : ''}`,
+  `media-src 'self' blob:${supabase ? ' ' + supabase.origin : ''}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -22,10 +22,16 @@ export function VideoEmbed({
   const embed = videoEmbed(url);
   if (file)
     return (
-      <video className="sx-video" controls preload="metadata" poster={poster || undefined} aria-label={title}>
-        <source src={file} />
-        Your browser cannot play this video.
-      </video>
+      <div className="sx-video">
+        {playing ? (
+          <video controls autoPlay playsInline preload="auto" poster={poster || undefined} aria-label={title}>
+            <source src={file} />
+            Your browser cannot play this video.
+          </video>
+        ) : (
+          <PlayButton poster={poster} title={title} onPlay={() => setPlaying(true)} />
+        )}
+      </div>
     );
   if (!embed) return null;
   return (
@@ -39,17 +45,23 @@ export function VideoEmbed({
           referrerPolicy="strict-origin-when-cross-origin"
         />
       ) : (
-        <button type="button" className="sx-video-play" onClick={() => setPlaying(true)}>
-          {poster && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={poster} alt="" />
-          )}
-          <span className="sx-video-icon">
-            <Play size={28} fill="currentColor" />
-          </span>
-          <span className="sx-video-label">Play video: {title}</span>
-        </button>
+        <PlayButton poster={poster} title={title} onPlay={() => setPlaying(true)} />
       )}
     </div>
+  );
+}
+
+function PlayButton({poster, title, onPlay}: {poster?: string; title: string; onPlay: () => void}) {
+  return (
+    <button type="button" className="sx-video-play" onClick={onPlay}>
+      {poster && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={poster} alt="" loading="lazy" />
+      )}
+      <span className="sx-video-icon">
+        <Play size={28} fill="currentColor" />
+      </span>
+      <span className="sx-video-label">Play video: {title}</span>
+    </button>
   );
 }

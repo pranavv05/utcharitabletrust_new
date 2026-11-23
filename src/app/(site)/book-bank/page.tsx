@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {BookOpen, Info} from 'lucide-react';
 import {PageIntro, JoinBanner} from '@/components/shared';
 import {Catalogue} from '@/components/catalogue';
+import {StudentVoicesSection} from '@/components/student-voices-section';
 export const metadata = {title: 'Community book bank'};
 export default async function BookBank() {
   const {programmes} = await getSiteContent();
@@ -44,6 +45,7 @@ export default async function BookBank() {
               with us before visiting.
             </span>
           </div>
+          <StudentVoicesSection />
         </div>
       </section>
       <JoinBanner />

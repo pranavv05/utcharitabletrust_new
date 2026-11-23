@@ -21,6 +21,7 @@ test('every content kind has a spec with unique field keys', () => {
       'programme',
       'team',
       'testimonial',
+      'student_voice',
       'partner',
       'legal',
       'college',
@@ -41,6 +42,8 @@ test('the publish checklist matches what each kind needs', () => {
   assert.deepEqual(publishIssues('legal', {}, 'Policy'), ['Document file or text']);
   assert.deepEqual(publishIssues('legal', {body: 'Text'}, 'Policy'), []);
   assert.deepEqual(publishIssues('college', {}, ''), ['Number of interns so far', 'College name']);
+  assert.deepEqual(publishIssues('student_voice', {}, 'Asha'), ['Video file or link']);
+  assert.deepEqual(publishIssues('student_voice', {video_file: 'x.mp4'}, 'Asha'), []);
   assert.equal(kindSpec('setting').single, true);
 });
 
