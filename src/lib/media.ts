@@ -55,3 +55,13 @@ export function byYear<T extends {year?: string}>(items: T[], filter: YearFilter
 
 /** The name given to student videos added in bulk; it is not shown to visitors, only a real name is. */
 export const GENERIC_STUDENT_NAME = 'Student';
+
+/** People entered twice (same name and photo) listed once, in their original order. */
+export function uniquePeople<T extends {name: string; image: string}>(people: T[]): T[] {
+  return people.filter(
+    (p, i) =>
+      people.findIndex(
+        (o) => o.name.trim().toLowerCase() === p.name.trim().toLowerCase() && o.image === p.image,
+      ) === i,
+  );
+}

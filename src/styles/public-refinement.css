@@ -270,6 +270,9 @@
   opacity: 0.35;
   cursor: default;
 }
+.programme-slider-rail.drifting {
+  scroll-snap-type: none;
+}
 .programme-slider-rail:focus-visible,
 .horizontal-scroll-shell:focus-visible {
   outline: 2px solid var(--accent);
