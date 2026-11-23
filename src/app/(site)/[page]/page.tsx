@@ -13,7 +13,7 @@ const pages: Record<string, {title: string; eyebrow: string; description: string
     title: 'A community that cares.',
     eyebrow: 'Our story',
     description:
-      'Rooted in Silvassa. United by a belief that everyone deserves dignity, opportunity, and a helping hand.',
+      'Rooted in Silvassa and proudly an ISO certified trust. United by a belief that everyone deserves dignity, opportunity, and a helping hand.',
   },
   'our-work': {
     title: 'Care takes many forms.',

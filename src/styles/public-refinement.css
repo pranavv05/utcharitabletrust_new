@@ -137,17 +137,6 @@
   width: 22px;
   background: #ffe174;
 }
-.hero-pause {
-  border: 1px solid #ffffff70;
-  background: #102d2760;
-  color: #fff;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
 .photo-hero button:focus-visible,
 .photo-hero a:focus-visible {
   outline: 3px solid #ffe174;

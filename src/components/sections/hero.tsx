@@ -3,40 +3,71 @@ import {FitPhoto} from '@/components/ui/fit-photo';
 import Image from 'next/image';
 import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
-import {Pause, Play} from 'lucide-react';
 import {gsap, useGSAP} from '@/lib/motion';
 import {useSiteContent} from '@/components/site-content-provider';
 import {IsoBadge} from '@/components/iso-badge';
+
+/** The photographs in public/images/slides. Very wide ones fill the screen; the others are shown whole. */
 const slides = [
   {
-    src: '/images/banner.webp',
-    alt: 'The trust with children and families in the community',
-    label: 'A community that cares',
+    src: '/images/slides/slide-v2-3.webp',
+    alt: 'The trust’s volunteers standing with children and families at a community gathering',
+    label: 'Together with our community',
     wide: true,
   },
   {
-    src: '/images/stationary/stationary3.webp',
-    alt: 'Children at a school essentials distribution activity',
-    label: 'Opening doors through education',
+    src: '/images/slides/slide-02.jpeg',
+    alt: 'Women of the community welcoming the trust’s volunteers with flowers outside the trust’s office',
+    label: 'Warm welcomes, shared joy',
+    wide: true,
   },
   {
-    src: '/images/blood/blood12.webp',
-    alt: 'Volunteers supporting a community blood donation camp',
-    label: 'Coming together to give back',
+    src: '/images/slides/slide-03.jpeg',
+    alt: 'Volunteers and supporters of the trust standing together outside its office',
+    label: 'People who give their time',
+    wide: true,
+  },
+  {
+    src: '/images/slides/slide-04.jpeg',
+    alt: 'A group of girls in matching clothes smiling and making victory signs with their teachers',
+    label: 'Bright futures, together',
+    wide: true,
+  },
+  {
+    src: '/images/slides/slide-05.jpeg',
+    alt: 'Girls and their teachers giving a thumbs up for the camera',
+    label: 'Every child counts',
+    wide: true,
+  },
+  {
+    src: '/images/slides/slide-06.jpeg',
+    alt: 'Boys in blue uniforms with their teachers, smiling and giving thumbs up',
+    label: 'Learning with confidence',
+  },
+  {
+    src: '/images/slides/slide-07.jpeg',
+    alt: 'Boys in blue uniforms crowding around their teacher with thumbs up',
+    label: 'Smiles that say it all',
+  },
+  {
+    src: '/images/slides/slide-08.jpeg',
+    alt: 'Boys in blue uniforms sitting together on the floor during a lesson',
+    label: 'Learning, together',
   },
 ];
+
 export function Hero() {
   const {iso} = useSiteContent();
   const scope = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
+  // The slideshow keeps going by itself; it only holds still while someone points at it or tabs into it.
   const [hovered, setHovered] = useState(false);
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     let timer: ReturnType<typeof setInterval> | undefined;
     function sync() {
       clearInterval(timer);
-      if (!paused && !hovered && !media.matches && !document.hidden)
+      if (!hovered && !media.matches && !document.hidden)
         timer = setInterval(() => setActive((i) => (i + 1) % slides.length), 6500);
     }
     sync();
@@ -47,7 +78,7 @@ export function Hero() {
       media.removeEventListener('change', sync);
       document.removeEventListener('visibilitychange', sync);
     };
-  }, [paused, hovered]);
+  }, [hovered, active]);
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -73,6 +104,8 @@ export function Hero() {
       aria-labelledby="hero-heading"
       aria-roledescription="carousel"
       aria-label="Our community"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onFocusCapture={() => setHovered(true)}
       onBlurCapture={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setHovered(false);
@@ -110,13 +143,16 @@ export function Hero() {
       </div>
       <div className="photo-hero-shade" />
       <div className="experience-container photo-hero-content">
-        <p className="photo-hero-eyebrow">ROOTED IN SILVASSA. OPEN TO EVERYONE.</p>
+        <IsoBadge iso={iso} variant="hero" />
         <h1 id="hero-heading">
-          Humanity.
+          Care you
           <br />
-          In <em>action.</em>
+          can <em>trust.</em>
         </h1>
-        <p>For every child with a dream. For every family finding its way. For the community we call home.</p>
+        <p>
+          An ISO certified charitable trust in Silvassa, bringing education, essentials and everyday support
+          to every child and family in our community.
+        </p>
         <div className="photo-hero-actions">
           <Link href="/join" className="bright-button">
             Be part of the change
@@ -125,14 +161,11 @@ export function Hero() {
             Discover our work
           </Link>
         </div>
-        <IsoBadge iso={iso} variant="line" />
       </div>
       <div className="experience-container photo-hero-bottom">
         <a href="#community">Discover what brings us together</a>
         <div className="hero-slide-controls">
-          <span className="hero-slide-label" aria-live={paused ? 'polite' : 'off'}>
-            {slides[active].label}
-          </span>
+          <span className="hero-slide-label">{slides[active].label}</span>
           <div className="hero-slide-dots">
             {slides.map((s, i) => (
               <button
@@ -140,22 +173,12 @@ export function Hero() {
                 aria-label={'Show photograph: ' + s.label}
                 aria-pressed={active === i}
                 className={active === i ? 'active' : ''}
-                onClick={() => {
-                  setActive(i);
-                  setPaused(true);
-                }}
+                onClick={() => setActive(i)}
               >
                 <span />
               </button>
             ))}
           </div>
-          <button
-            className="hero-pause"
-            onClick={() => setPaused(!paused)}
-            aria-label={paused ? 'Play slideshow' : 'Pause slideshow'}
-          >
-            {paused ? <Play size={17} /> : <Pause size={17} />}
-          </button>
         </div>
       </div>
     </section>

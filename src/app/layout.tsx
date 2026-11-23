@@ -22,13 +22,16 @@ const sans = localFont({
 });
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: {default: 'UT Charitable Trust | Humanity. In action.', template: '%s | UT Charitable Trust'},
+  title: {
+    default: 'UT Charitable Trust | ISO Certified Charitable Trust in Silvassa',
+    template: '%s | UT Charitable Trust',
+  },
   description:
-    'A community-led charitable trust in Silvassa. Education, health, and everyday acts of care. Discover our work and find your way to help.',
+    'UT Charitable Trust is an ISO certified, community-led charitable trust in Silvassa. Education, health, and everyday acts of care. Discover our work and find your way to help.',
   openGraph: {
-    title: 'UT Charitable Trust | Humanity. In action.',
+    title: 'UT Charitable Trust | ISO Certified Charitable Trust in Silvassa',
     description:
-      'For every child with a dream. For every family finding its way. For the community we call home.',
+      'Care you can trust. An ISO certified charitable trust bringing education, essentials and everyday support to every child and family in our community.',
     type: 'website',
     images: [
       {url: '/images/banner.webp', width: 1800, height: 831, alt: 'UT Charitable Trust with its community'},

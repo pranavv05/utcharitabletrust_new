@@ -150,6 +150,11 @@ Open **Book inventory**, press **Edit** on a copy and use the **Copy number (UTB
 - New donated copies keep counting up from the highest number in use, so they never repeat a number you set by hand.
 - Older records may already repeat a number. The check only guards new numbers, so those copies keep working; their edit dialog shows a warning, and giving one of them a new number here resolves it.
 
+## Home page hero and the ISO certification
+
+- **Hero slideshow:** the background photographs are the files in `public/images/slides` (currently `slide-v2-3.webp` and `slide-02.jpeg` to `slide-08.jpeg`), listed with their captions at the top of `src/components/sections/hero.tsx`. To change the slideshow, replace or add files there and update that list. It plays by itself, pauses while a visitor points at it or tabs into it, and the dots jump to a photograph.
+- **ISO certified trust** is shown in the hero, the header, the footer, the Legal documents page, the banner that ends most pages, the home page's scrolling words, printed receipts, the page titles and descriptions that search engines show, and the website assistant. By default these say **ISO Certified Trust**. Once the exact standard is entered in **Website content → ISO certification** (for example ISO 9001:2015, with the certificate number, certifying body and expiry), every place names it, and the Legal documents page shows the full certificate card.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).

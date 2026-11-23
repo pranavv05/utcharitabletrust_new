@@ -88,7 +88,7 @@ export function ReceiptDocument({
             {trust.phone} · {trust.email}
           </span>
           {trust.registration && <span>Registration No. {trust.registration}</span>}
-          {trust.iso && <span>{trust.iso} certified</span>}
+          <span>{trust.iso ? trust.iso + ' certified' : 'ISO certified trust'}</span>
         </div>
       </header>
 
