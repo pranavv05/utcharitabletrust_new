@@ -25,6 +25,10 @@ function Slide({programme: p, copy}: {programme: Programme; copy: boolean}) {
           src={p.image}
           alt={copy ? '' : p.name + ' programme'}
           sizes="(max-width:650px) 80vw,(max-width:1000px) 45vw,30vw"
+          // The row drifts towards photographs that are off screen, so they are fetched up front (quietly,
+          // after the first screen) instead of showing empty frames as they arrive.
+          loading="eager"
+          fetchPriority="low"
         />
       </div>
       <div className="programme-slide-copy">
