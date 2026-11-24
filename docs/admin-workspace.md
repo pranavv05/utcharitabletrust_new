@@ -116,7 +116,7 @@ Uploads: photographs up to 5 MB go through the server; PDFs (20 MB) and videos (
 
 ## Student videos on the Book Bank page
 
-**Website content → Student videos** holds the video feedback from students. Published videos appear in a "Hear it from the students" section after the catalogue on the Book Bank page, and on the home page they drift across a strip from left to right (videos set to "Show on the home page" come first, up to 24 in all; it pauses when someone points at it or plays a video). The Book Bank page shows three full rows first, then a "Show more videos" button. Both places also show how many books have been issued (a count only; no names or references are public).
+**Website content → Student videos** holds the video feedback from students. Published videos appear in a "Hear it from the students" section after the catalogue on the Book Bank page, and on the home page they drift across a strip from left to right (videos set to "Show on the home page" come first, up to 24 in all; it pauses when someone points at it or plays a video). The Book Bank page shows three full rows first, then a "Show more videos" button. The home page strip also says how many books have been issued so far (a number only; no names or references are public).
 
 - **Bulk upload videos** takes many MP4/WebM files at once (up to 50 MB each). Each is uploaded to storage, a preview picture is made from one of its frames, and the video is published. They are saved as "Student"; the public cards hide that label, so open a video later to add a real first name, a short written quote, a class or book, or a year.
 - **A single video** can be a YouTube or Vimeo link instead of a file (useful for long videos).
@@ -133,7 +133,7 @@ Both rows drift across the screen by themselves, from left to right, and pause w
 
 ## The Our people page and its groups
 
-The Our people page (`/team`) shows everyone in four groups, as on the trust's old member page: **Trustees**, **Advisory Board**, **Our Mentors** and **Working Body**. Each group has a heading, a count, and its people in the order set by **Display order**. A search box looks across everyone, and the counts at the top switch between groups. Chairmen and presidents are highlighted, and anyone without a real photograph gets their initials instead of a grey placeholder.
+The Our people page (`/team`) shows everyone in four groups, as on the trust's old member page: **Trustees**, **Advisory Board**, **Our Mentors** and **Working Body**. Each group has a heading and its people in the order set by **Display order**. A search box looks across everyone, and the buttons at the top switch between groups. Chairmen and presidents are highlighted, and anyone without a real photograph gets their initials instead of a grey placeholder.
 
 - **Website content → Team:** every person has a **Group** (which section they appear in) and a **Role / responsibility** (the label under the name, for example Chairman or President). A person with no group appears in a final "Our team" section, so nobody disappears.
 - **Photographs:** a photograph named `blank.webp` is treated as "no photograph" and shows initials. Upload a real photo to replace it.

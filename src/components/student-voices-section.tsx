@@ -8,7 +8,7 @@ const count = (n: number) => n.toLocaleString('en-IN');
 
 /** Video feedback from students on the Book Bank page, after the catalogue. Nothing renders until one exists. */
 export async function StudentVoicesSection() {
-  const [{studentVoices}, stats] = await Promise.all([getSiteContent(), getBookStats()]);
+  const {studentVoices} = await getSiteContent();
   if (!studentVoices.length) return null;
   return (
     <section className="sx-voices-section" id="student-voices" aria-labelledby="student-voices-title">
@@ -23,16 +23,6 @@ export async function StudentVoicesSection() {
             studies.
           </p>
         </div>
-        <ul className="sx-voice-facts" aria-label="Book bank in numbers">
-          {stats && (
-            <li>
-              <strong>{count(stats.issued)}</strong> books issued
-            </li>
-          )}
-          <li>
-            <strong>{count(studentVoices.length)}</strong> student videos
-          </li>
-        </ul>
       </div>
       <StudentVoiceGrid voices={studentVoices} />
     </section>
