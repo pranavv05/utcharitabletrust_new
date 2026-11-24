@@ -1,11 +1,11 @@
-import {normalizeIsbn} from './isbn';
+import {normalizeIsbn, toIsbn10, toIsbn13} from './isbn';
 
 export type BookDetails = {
   title: string;
   author: string;
   class_name: string;
   isbn?: string;
-  source: 'barcode' | 'cover';
+  source: 'barcode' | 'cover' | 'catalogue';
   /** Only set when the source gave a subject or category hint. */
   categories?: string[];
 };
@@ -19,7 +19,7 @@ async function getJson(url: string, fetchImpl: Fetch) {
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const response = await fetchImpl(url, {signal: AbortSignal.timeout(7000), cache: 'no-store'});
+      const response = await fetchImpl(url, {signal: AbortSignal.timeout(6000), cache: 'no-store'});
       if (!response.ok) return null;
       return (await response.json()) as unknown;
     } catch (error) {
@@ -29,65 +29,123 @@ async function getJson(url: string, fetchImpl: Fetch) {
   throw lastError;
 }
 
-/** Looks an ISBN up in Open Library first, then Google Books. Returns null when neither knows it. */
-export async function lookupIsbn(input: string, fetchImpl: Fetch = fetch): Promise<BookDetails | null> {
-  const isbn = normalizeIsbn(input);
-  if (!isbn) return null;
-  try {
-    const open = (await getJson(
-      `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`,
-      fetchImpl,
-    )) as Record<string, {title?: string; authors?: {name?: string}[]; subjects?: {name?: string}[]}> | null;
-    const entry = open?.['ISBN:' + isbn];
-    const title = clean(entry?.title, 250);
-    if (title) {
+type Found = {title: string; author: string; categories: string[]};
+const subjects = (values: (string | undefined)[]) =>
+  values
+    .map((c) => clean(c, 60))
+    .filter((c) => c && !/[:_]/.test(c))
+    .slice(0, 5);
+
+/** The free public book databases, asked at the same time. Each returns what it knows, or null. */
+function sources(isbn13: string, isbn10: string | null, googleKey: string | undefined, fetchImpl: Fetch) {
+  const keys = ['ISBN:' + isbn13, ...(isbn10 ? ['ISBN:' + isbn10] : [])];
+  return [
+    // Open Library, by either form of the ISBN (an old record may only exist under the 10-digit one).
+    async (): Promise<Found | null> => {
+      const data = (await getJson(
+        `https://openlibrary.org/api/books?bibkeys=${keys.join(',')}&format=json&jscmd=data`,
+        fetchImpl,
+      )) as Record<
+        string,
+        {title?: string; authors?: {name?: string}[]; subjects?: {name?: string}[]}
+      > | null;
+      const entry = keys.map((k) => data?.[k]).find((e) => clean(e?.title, 250));
+      if (!entry) return null;
       return {
-        title,
+        title: clean(entry.title, 250),
         author: clean(
-          entry?.authors
+          entry.authors
             ?.map((a) => a.name)
             .filter(Boolean)
             .join(', '),
           150,
         ),
-        class_name: '',
-        isbn,
-        source: 'barcode',
-        categories: (entry?.subjects || [])
-          .map((s) => clean(s.name, 60))
-          .filter((c) => c && !/[:_]/.test(c))
-          .slice(0, 5),
+        categories: subjects((entry.subjects || []).map((x) => x.name)),
       };
-    }
-  } catch {
-    // fall through to the next source
-  }
-  try {
-    const google = (await getJson(
-      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`,
-      fetchImpl,
-    )) as {
-      items?: {volumeInfo?: {title?: string; subtitle?: string; authors?: string[]; categories?: string[]}}[];
-    } | null;
-    const info = google?.items?.[0]?.volumeInfo;
-    const title = clean([info?.title, info?.subtitle].filter(Boolean).join(': '), 250);
-    if (title) {
-      return {
-        title,
-        author: clean((info?.authors || []).join(', '), 150),
-        class_name: '',
-        isbn,
-        source: 'barcode',
-        categories: (info?.categories || [])
-          .map((c) => clean(c, 60))
-          .filter((c) => c && !/[:_]/.test(c))
-          .slice(0, 5),
-      };
-    }
-  } catch {
-    // no more sources
-  }
-  return null;
+    },
+    // Open Library's search, which sometimes knows editions the record lookup does not.
+    async (): Promise<Found | null> => {
+      const data = (await getJson(
+        `https://openlibrary.org/search.json?q=isbn:${isbn13}&fields=title,author_name,subject&limit=1`,
+        fetchImpl,
+      )) as {docs?: {title?: string; author_name?: string[]; subject?: string[]}[]} | null;
+      const doc = data?.docs?.[0];
+      const title = clean(doc?.title, 250);
+      return title
+        ? {
+            title,
+            author: clean((doc?.author_name || []).join(', '), 150),
+            categories: subjects(doc?.subject || []),
+          }
+        : null;
+    },
+    // Google Books. Without an API key Google shares one small daily allowance between everyone, which is
+    // usually used up, so this only helps once GOOGLE_BOOKS_API_KEY is set (it is free).
+    async (): Promise<Found | null> => {
+      const data = (await getJson(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn13}&maxResults=1${googleKey ? '&key=' + encodeURIComponent(googleKey) : ''}`,
+        fetchImpl,
+      )) as {
+        items?: {
+          volumeInfo?: {title?: string; subtitle?: string; authors?: string[]; categories?: string[]};
+        }[];
+      } | null;
+      const info = data?.items?.[0]?.volumeInfo;
+      const title = clean([info?.title, info?.subtitle].filter(Boolean).join(': '), 250);
+      return title
+        ? {
+            title,
+            author: clean((info?.authors || []).join(', '), 150),
+            categories: subjects(info?.categories || []),
+          }
+        : null;
+    },
+  ];
+}
+
+/**
+ * Looks an ISBN up in the public book databases at once and combines what they know (one may have the title and
+ * another the author). Gives up after about nine seconds so the screen never hangs. Returns null when none knows it.
+ */
+export async function lookupIsbn(
+  input: string,
+  fetchImpl: Fetch = fetch,
+  options: {googleKey?: string; deadlineMs?: number} = {},
+): Promise<BookDetails | null> {
+  const isbn13 = toIsbn13(input);
+  if (!isbn13) return null;
+  const list = sources(isbn13, toIsbn10(isbn13), options.googleKey, fetchImpl);
+  const found: Found[] = [];
+  await new Promise<void>((resolve) => {
+    let pending = list.length;
+    const timer = setTimeout(resolve, options.deadlineMs ?? 9000);
+    const finish = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    for (const source of list)
+      source()
+        .then((result) => {
+          if (!result) return;
+          found.push(result);
+          // A complete answer is enough: no need to wait for the slower sources.
+          if (result.title && result.author) finish();
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (--pending === 0) finish();
+        });
+  });
+  const title = found.find((f) => f.title)?.title;
+  if (!title) return null;
+  return {
+    title,
+    author: found.find((f) => f.author)?.author || '',
+    class_name: '',
+    isbn: isbn13,
+    source: 'barcode',
+    categories: [...new Set(found.flatMap((f) => f.categories))].slice(0, 5),
+  };
 }
 
 /** Validates and trims whatever the vision model returned. Unknown fields come back empty. */
