@@ -4,7 +4,15 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {send} from './workspace';
 import {display, type Row} from '@/lib/admin/config';
-export function PersonProfile({id}: {id: string}) {
+export function PersonProfile({
+  id,
+  isAdmin = false,
+  onChanged,
+}: {
+  id: string;
+  isAdmin?: boolean;
+  onChanged?: () => void;
+}) {
   const [data, setData] = useState<Row | null>(null),
     [error, setError] = useState(''),
     [revision, setRevision] = useState(0);
@@ -33,13 +41,46 @@ export function PersonProfile({id}: {id: string}) {
   ) : (
     <>
       <dl className="admin-detail-list">
-        {['name', 'email', 'phone', 'address', 'type', 'outstanding'].map((k) => (
+        <div>
+          <dt>Person ID</dt>
+          <dd>{display(data.customerId)}</dd>
+        </div>
+        {['name', 'phone', 'email', 'address'].map((k) => (
           <div key={k}>
-            <dt>{k === 'outstanding' ? 'Books not yet returned' : k}</dt>
+            <dt>
+              {k === 'name' ? 'Name' : k === 'phone' ? 'Phone' : k === 'email' ? 'Email address' : 'Address'}
+            </dt>
             <dd>{display(data[k])}</dd>
           </div>
         ))}
+        <div>
+          <dt>Role</dt>
+          <dd>
+            {Number(data.donations) > 0 && <span className="admin-badge status-active">Donor</span>}{' '}
+            {Number(data.borrowings) > 0 && <span className="admin-badge status-new">Borrower</span>}
+            {!Number(data.donations) && !Number(data.borrowings) && 'No donations or issued books yet'}
+          </dd>
+        </div>
+        <div>
+          <dt>Books donated</dt>
+          <dd>{display(data.books_donated)}</dd>
+        </div>
+        <div>
+          <dt>Books not yet returned</dt>
+          <dd>{display(data.outstanding)}</dd>
+        </div>
       </dl>
+      {Array.isArray(data.possible_duplicates) && (data.possible_duplicates as Row[]).length > 0 && (
+        <DuplicatesOfPerson
+          person={data}
+          others={data.possible_duplicates as Row[]}
+          isAdmin={isAdmin}
+          onChanged={() => {
+            setRevision((x) => x + 1);
+            onChanged?.();
+          }}
+        />
+      )}
       <h3 className="admin-subheading">Transaction history</h3>
       <p className="admin-form-help">Latest 200 transactions. Open a reference to see copies and receipts.</p>
       <div className="admin-table-scroll">
@@ -298,6 +339,93 @@ export function CancelEntry({id, kind, onDone}: {id: string; kind: 'donation' | 
           {busy ? 'Cancelling…' : 'Cancel this ' + noun}
         </button>
       </form>
+    </section>
+  );
+}
+
+/** Other entries that may be the same person as this one, with a merge for administrators. */
+function DuplicatesOfPerson({
+  person,
+  others,
+  isAdmin,
+  onChanged,
+}: {
+  person: Row;
+  others: Row[];
+  isAdmin: boolean;
+  onChanged: () => void;
+}) {
+  const [asking, setAsking] = useState<Row | null>(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState('');
+  async function merge() {
+    if (!asking) return;
+    setBusy(true);
+    setError('');
+    try {
+      await send('merge', {keep_id: person.id, remove_id: asking.id});
+      setAsking(null);
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="admin-duplicate-group" aria-label="Entries that may be the same person">
+      <h3 className="admin-subheading">May be the same person</h3>
+      <p className="admin-form-help">
+        These entries share this person&apos;s phone, email or name. A family often shares a phone, so check
+        before merging.
+      </p>
+      <ul>
+        {others.map((o) => (
+          <li key={String(o.id)}>
+            <span>
+              <Link className="admin-record-link" href={'/admin/people?id=' + o.id}>
+                {display(o.name)}
+              </Link>{' '}
+              ({display(o.customerId)})
+              <small>
+                {display(o.phone)} · {display(o.email)} · {display(o.reason)}
+              </small>
+            </span>
+            {isAdmin && (
+              <button type="button" className="admin-button secondary" onClick={() => setAsking(o)}>
+                Merge into this person
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {asking && (
+        <div className="admin-notice error" role="alertdialog" aria-label="Confirm merge">
+          <p>
+            Merge <strong>{display(asking.name)}</strong> ({display(asking.customerId)}) into{' '}
+            <strong>{display(person.name)}</strong>? Their donations, issues and books move to{' '}
+            {display(person.name)} and the other entry is removed. This cannot be undone.
+          </p>
+          <div className="admin-person-match-actions">
+            <button type="button" className="admin-button primary" disabled={busy} onClick={merge}>
+              {busy ? 'Merging…' : 'Yes, merge'}
+            </button>
+            <button
+              type="button"
+              className="admin-button secondary"
+              disabled={busy}
+              onClick={() => setAsking(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="admin-notice error">
+          {error}
+        </p>
+      )}
     </section>
   );
 }

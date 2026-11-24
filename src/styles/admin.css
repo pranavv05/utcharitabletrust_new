@@ -3270,3 +3270,62 @@ html[data-theme='dark'] .admin-login {
   padding: 9px 12px;
   font-variant-numeric: tabular-nums;
 }
+
+/* People: roles, duplicates and the "is this the same person?" prompts */
+.admin-roles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.admin-muted {
+  color: var(--a-muted);
+  font-size: 0.8rem;
+}
+.admin-person-match {
+  display: grid;
+  gap: 12px;
+}
+.admin-person-match p {
+  margin: 0;
+}
+.admin-person-match ul,
+.admin-duplicate-group ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-person-match li,
+.admin-duplicate-group li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: var(--a-card);
+}
+.admin-person-match li small,
+.admin-duplicate-group li small {
+  display: block;
+  color: var(--a-muted);
+  font-size: 0.78rem;
+}
+.admin-person-match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.admin-duplicate-group {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+.admin-duplicate-group h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}

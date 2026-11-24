@@ -3,6 +3,8 @@ import {trustDate, clampRecordPage} from '@/lib/admin/dates';
 import {ISSUE_DAYS, LATE_FEE_PER_DAY, daysLate, issueDueDate} from '@/lib/admin/policy';
 import {parseDonationCsv} from '@/lib/admin/donation-csv';
 import {PersonChooser} from './person-chooser';
+import {PersonForm} from './person-form';
+import {PeopleDuplicates} from './people-duplicates';
 import {LookupInput} from './lookup-input';
 import {BookScanner, type ScannedBook} from './book-scanner';
 import {PersonProfile, LoanTools, ApplicationApproval, CancelEntry} from './workflow-tools';
@@ -164,7 +166,13 @@ export function RecordPicker({
           }}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={entity === 'books' ? 'Search title, author or UTBN' : 'Search name, email or phone'}
+          placeholder={
+            entity === 'books'
+              ? 'Search title, author or UTBN'
+              : entity === 'people'
+                ? 'Search name, phone, email or ID'
+                : 'Search name, email or phone'
+          }
         />
       </div>
       {selected.length > 0 && (
@@ -197,7 +205,11 @@ export function RecordPicker({
                 <small>
                   {entity === 'books'
                     ? `${row.author} · ${row.class} · UTBN ${row.utbn}`
-                    : String(row.email || row.phone)}
+                    : entity === 'people'
+                      ? [row.phone, row.email, row.customerId, row.status === 'inactive' ? 'Archived' : '']
+                          .filter(Boolean)
+                          .join(' · ')
+                      : String(row.email || row.phone)}
                 </small>
               </span>
             </button>
@@ -448,7 +460,7 @@ function DonationForm({onDone}: {onDone: (id: string) => void}) {
   }
   return (
     <form className="admin-form" onSubmit={submit}>
-      <PersonChooser type="donar" selected={person} onChange={setPerson} />
+      <PersonChooser label="Donor" selected={person} onChange={setPerson} />
       <div className="admin-scan-cta">
         <button type="button" className="admin-button secondary" onClick={() => setScanning(true)}>
           <Camera size={17} /> Scan books with the camera
@@ -577,7 +589,7 @@ function IssueForm({onDone}: {onDone: (id: string) => void}) {
   }
   return (
     <form className="admin-form" onSubmit={submit}>
-      <PersonChooser type="customer" selected={person} onChange={setPerson} />
+      <PersonChooser label="Borrower" selected={person} onChange={setPerson} />
       <div className="admin-form-grid">
         <label>
           Issue date
@@ -944,8 +956,8 @@ export function Workspace({
     setRow(null);
     if (params.size) router.replace('/admin/' + section, {scroll: false});
   }
-  function saved(id?: string) {
-    setNotice('Saved successfully.');
+  function saved(id?: string, message?: string) {
+    setNotice(message || 'Saved successfully.');
     setRevision((x) => x + 1);
     if (id) {
       setRow({id});
@@ -1052,17 +1064,25 @@ export function Workspace({
               <Plus size={17} /> Add donation
             </Link>
           ) : (
-            canWrite &&
             configFields.length > 0 && (
-              <button
-                className="admin-button primary"
-                onClick={() => {
-                  setRow(null);
-                  setDialog('edit');
-                }}
-              >
-                <Plus size={17} /> Add {cfg.singular}
-              </button>
+              <>
+                {section === 'people' && (
+                  <button className="admin-button secondary" onClick={() => setDialog('duplicates')}>
+                    Possible duplicates
+                  </button>
+                )}
+                {canWrite && (
+                  <button
+                    className="admin-button primary"
+                    onClick={() => {
+                      setRow(null);
+                      setDialog('edit');
+                    }}
+                  >
+                    <Plus size={17} /> Add {cfg.singular}
+                  </button>
+                )}
+              </>
             )
           )}
         </div>
@@ -1179,6 +1199,18 @@ export function Workspace({
                         >
                           {display(r[key])}
                         </button>
+                      ) : key === 'roles' ? (
+                        <span className="admin-roles">
+                          {Number(r.donations) > 0 && (
+                            <span className="admin-badge status-active">Donor</span>
+                          )}
+                          {Number(r.borrowings) > 0 && (
+                            <span className="admin-badge status-new">Borrower</span>
+                          )}
+                          {!Number(r.donations) && !Number(r.borrowings) && (
+                            <span className="admin-muted">No activity yet</span>
+                          )}
+                        </span>
                       ) : key === 'created_at' ? (
                         r[key] ? (
                           new Date(String(r[key])).toLocaleDateString('en-IN', {
@@ -1289,7 +1321,7 @@ export function Workspace({
       </section>
       {dialog === 'profile' && row && (
         <Dialog title="Person profile" onClose={close} wide>
-          <PersonProfile id={String(row.id)} />
+          <PersonProfile id={String(row.id)} isAdmin={isAdmin} onChanged={() => setRevision((x) => x + 1)} />
         </Dialog>
       )}
       {dialog === 'edit' && (
@@ -1299,7 +1331,21 @@ export function Workspace({
           onClose={close}
         >
           {canWrite ? (
-            <SaveForm section={section} row={row} isAdmin={isAdmin} onDone={() => saved()} />
+            section === 'people' ? (
+              <PersonForm
+                row={row}
+                onSaved={(person, status) =>
+                  saved(
+                    undefined,
+                    status === 'created'
+                      ? `${String(person.name)} was added (${String(person.customerId)}).`
+                      : undefined,
+                  )
+                }
+              />
+            ) : (
+              <SaveForm section={section} row={row} isAdmin={isAdmin} onDone={() => saved()} />
+            )
           ) : (
             <dl className="admin-detail-list">
               {Object.entries(row || {}).map(([k, v]) => (
@@ -1310,6 +1356,16 @@ export function Workspace({
               ))}
             </dl>
           )}
+        </Dialog>
+      )}
+      {dialog === 'duplicates' && (
+        <Dialog
+          title="Possible duplicates"
+          subtitle="Entries that share a phone number, email or name."
+          onClose={close}
+          wide
+        >
+          <PeopleDuplicates isAdmin={isAdmin} onChanged={() => setRevision((x) => x + 1)} />
         </Dialog>
       )}
       {dialog === 'donate' && canWrite && (

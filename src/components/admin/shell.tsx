@@ -55,7 +55,7 @@ export const navGroups: NavGroup[] = [
   {
     label: 'PEOPLE',
     items: [
-      {href: '/admin/people', label: 'Donors & borrowers', Icon: Users},
+      {href: '/admin/people', label: 'People', Icon: Users},
       {href: '/admin/members', label: 'Members', Icon: UserCheck},
     ],
   },
