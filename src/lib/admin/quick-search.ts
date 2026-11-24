@@ -44,7 +44,20 @@ export function quickResults(entity: 'books' | 'people' | 'loans', rows: Row[], 
           key: 'person-' + id,
           group: 'People',
           title: text(row.name) || 'Unnamed person',
-          detail: [label(row.type), text(row.phone), text(row.customerId)].filter(Boolean).join(' · '),
+          detail: [
+            // Roles come from what the person has done; older rows without counts fall back to their saved type.
+            Number(row.donations) > 0 || Number(row.borrowings) > 0
+              ? [Number(row.donations) > 0 && 'Donor', Number(row.borrowings) > 0 && 'Borrower']
+                  .filter(Boolean)
+                  .join(' & ')
+              : row.donations === undefined
+                ? label(row.type)
+                : '',
+            text(row.phone),
+            text(row.customerId),
+          ]
+            .filter(Boolean)
+            .join(' · '),
           href: '/admin/people?id=' + id,
         };
       }

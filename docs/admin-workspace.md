@@ -155,6 +155,19 @@ Open **Book inventory**, press **Edit** on a copy and use the **Copy number (UTB
 - **Hero slideshow:** the background photographs are the files in `public/images/slides` (currently `slide-v2-3.webp` and `slide-02.jpeg` to `slide-08.jpeg`), listed with their captions at the top of `src/components/sections/hero.tsx`. To change the slideshow, replace or add files there and update that list. It plays by itself, pauses while a visitor points at it or tabs into it, and the dots jump to a photograph.
 - **ISO certified trust** is mentioned in the hero introduction, shown in the header, the footer, the Legal documents page, the banner that ends most pages, the home page's scrolling words, printed receipts, the page titles and descriptions that search engines show, and the website assistant. By default these say **ISO Certified Trust**. Once the exact standard is entered in **Website content → ISO certification** (for example ISO 9001:2015, with the certificate number, certifying body and expiry), every place names it, and the Legal documents page shows the full certificate card.
 
+## People: one list for donors and borrowers
+
+Everyone is in **one list** (the **People** page). There is no separate donor and borrower list: whoever donates or borrows is the same person, and their **Role** (Donor, Borrower or both) is worked out from what they have done. Any active person can be chosen on the Donation and Issue screens.
+
+- **Finding someone:** every picker and the People page search by **name** (words in any order), **phone** (however it is written: spaces, dashes, +91 or 0 in front), **email** or the person's **Person ID** (UTC-P-…).
+- **Adding someone:** name, phone and email are required. If the person might already be in the list, the screen says who instead of failing:
+  - the same name and phone number as someone already there is **never created twice**: it offers "Use this person" (an archived entry says to restore it first);
+  - the same phone number, email or name with different details asks "Is this the same person?". A family may share a phone, so "No, add as a different person" is allowed.
+- **Possible duplicates** (People page) lists entries that share a phone, email or name. An administrator can open **Keep this one** to merge the others into it, or use **Merge into this person** on a person's profile. All donations, issues and books move to the kept person, the other entry is removed, and the activity log records exactly what was merged. A merge cannot be undone.
+- **Archiving** a person who still has books out is refused; an archived person cannot donate or borrow until restored.
+- Reference numbers (UTC-P-, UTC-D-, UTC-I-, UTC-M-) and UTBNs now always skip any number already in use, so a new record can never clash with an old one.
+- Needs migration `20261124100000_people_master_list.sql`.
+
 ## Lending policy and receipts
 
 The policy is set in one place, `src/lib/admin/policy.ts`: books are issued for **365 days** (the return date is set automatically and cannot be edited when issuing) and a **late fee of ₹10 per day** applies after the due date. The return form suggests the late fee for the selected books and the date chosen; staff can edit or clear it, and it is recorded only when saved. Damage and loss have no fixed amount: the receipt says the borrower pays the amount decided by the trust (current price or replacement of the same title and edition).

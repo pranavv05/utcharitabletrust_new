@@ -19,6 +19,7 @@ export async function GET(request: Request, {params}: {params: Promise<{entity: 
   else if (entity === 'application')
     result = await ctx.db.rpc('admin_application', {p_id: url.searchParams.get('id') || ''});
   else if (entity === 'conflicts') result = await ctx.db.rpc('admin_conflicts');
+  else if (entity === 'duplicates') result = await ctx.db.rpc('admin_duplicate_people');
   else if (entity === 'content')
     result = await ctx.db.rpc('admin_content', {p_kind: url.searchParams.get('kind') || ''});
   else if (entity === 'reports') {
@@ -137,6 +138,20 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
     if (entity === 'delete' && ctx.staff.role !== 'admin')
       return NextResponse.json({message: 'Only an administrator can delete records.'}, {status: 403});
     result = await ctx.db.rpc('admin_' + entity, {p_entity: action.data.entity, p_id: action.data.id});
+  } else if (entity === 'people' && body.archive !== true) {
+    result = await ctx.db.rpc('admin_person_save', {
+      p_data: {
+        ...(typeof body.data === 'object' && body.data ? body.data : {}),
+        id: body.id || null,
+        confirm_similar: body.confirm_similar === true,
+      },
+    });
+  } else if (entity === 'merge') {
+    if (ctx.staff.role !== 'admin')
+      return NextResponse.json({message: 'Only an administrator can merge people.'}, {status: 403});
+    result = await ctx.db.rpc('admin_merge_people', {
+      p_data: {keep_id: String(body.keep_id || ''), remove_id: String(body.remove_id || '')},
+    });
   } else if (['donate', 'issue', 'return'].includes(entity)) {
     // Books are always issued for exactly 365 days, so the due date is set here and any value sent is ignored.
     if (entity === 'issue') {
@@ -163,7 +178,13 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
       code === '23505'
         ? /UTBN/.test(result.error.message)
           ? result.error.message
-          : 'A record with those details already exists.'
+          : /members_email/.test(result.error.message)
+            ? 'A member with this email address already exists.'
+            : /members_phone/.test(result.error.message)
+              ? 'A member with this phone number already exists.'
+              : /memberid|orderno|customerid/i.test(result.error.message)
+                ? 'The next reference number was taken a moment ago. Please press Save again.'
+                : 'A record with those details already exists.'
         : code === 'P0001'
           ? plainTerms(result.error.message)
           : code === '22007' || code === '22P02'
@@ -175,5 +196,7 @@ export async function POST(request: Request, {params}: {params: Promise<{entity:
   }
   if (entity === 'content' || entity === 'content-delete' || entity === 'content-year')
     revalidatePath('/', 'layout');
+  if (entity === 'people' || entity === 'merge')
+    return NextResponse.json({ok: true, ...(result.data as Record<string, unknown>)});
   return NextResponse.json({ok: true, id: result.data});
 }
