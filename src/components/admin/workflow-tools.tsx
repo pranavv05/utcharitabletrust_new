@@ -54,14 +54,6 @@ export function PersonProfile({
           </div>
         ))}
         <div>
-          <dt>Role</dt>
-          <dd>
-            {Number(data.donations) > 0 && <span className="admin-badge status-active">Donor</span>}{' '}
-            {Number(data.borrowings) > 0 && <span className="admin-badge status-new">Borrower</span>}
-            {!Number(data.donations) && !Number(data.borrowings) && 'No donations or issued books yet'}
-          </dd>
-        </div>
-        <div>
           <dt>Books donated</dt>
           <dd>{display(data.books_donated)}</dd>
         </div>

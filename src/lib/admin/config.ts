@@ -18,7 +18,7 @@ export const sections = {
     description:
       'One list for everyone who donates or borrows. Search by name, phone, email or reference number.',
     singular: 'person',
-    columns: ['name', 'customerId', 'phone', 'email', 'roles', 'status'],
+    columns: ['name', 'customerId', 'phone', 'email', 'status'],
     filters: ['donor', 'borrower', 'active', 'inactive'],
     fields: [
       {key: 'name', label: 'Full name', required: true},
@@ -150,7 +150,6 @@ export const labels: Record<string, string> = {
   email: 'Email address',
   phone: 'Phone',
   type: 'Type',
-  roles: 'Role',
   orderNo: 'Reference',
   issueDate: 'Issue / donation date',
   endDate: 'Due date',

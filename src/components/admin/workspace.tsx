@@ -1202,18 +1202,6 @@ export function Workspace({
                         >
                           {display(r[key])}
                         </button>
-                      ) : key === 'roles' ? (
-                        <span className="admin-roles">
-                          {Number(r.donations) > 0 && (
-                            <span className="admin-badge status-active">Donor</span>
-                          )}
-                          {Number(r.borrowings) > 0 && (
-                            <span className="admin-badge status-new">Borrower</span>
-                          )}
-                          {!Number(r.donations) && !Number(r.borrowings) && (
-                            <span className="admin-muted">No activity yet</span>
-                          )}
-                        </span>
                       ) : key === 'created_at' ? (
                         r[key] ? (
                           new Date(String(r[key])).toLocaleDateString('en-IN', {
