@@ -55,10 +55,6 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
   return (
     <div className="team-hub">
       <div className="team-summary">
-        <p>
-          <strong>{everyone.length}</strong> people in {groups.length} groups, giving their time and care to
-          the trust.
-        </p>
         <label className="team-search">
           <Search size={18} aria-hidden="true" />
           <span className="team-sr">Search people</span>
@@ -72,7 +68,6 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
       </div>
       <div className="team-tabs" role="group" aria-label="Show a group of people">
         <button type="button" aria-pressed={tab === 'all' && !needle} onClick={() => setTab('all')}>
-          <strong>{everyone.length}</strong>
           <span>Everyone</span>
         </button>
         {groups.map((g) => (
@@ -85,7 +80,6 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
               setQuery('');
             }}
           >
-            <strong>{g.people.length}</strong>
             <span>{g.group.tab}</span>
           </button>
         ))}
@@ -93,9 +87,7 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
       <div aria-live="polite">
         {needle && (
           <p className="team-found">
-            {found
-              ? `${found} ${found === 1 ? 'person matches' : 'people match'} “${query.trim()}”`
-              : `Nobody matches “${query.trim()}”.`}
+            {found ? `Results for “${query.trim()}”` : `Nobody matches “${query.trim()}”.`}
           </p>
         )}
         {visible.map(({group, people}) => (
@@ -105,7 +97,6 @@ export function TeamDirectory({team}: {team: SiteContent['team']}) {
                 <h2 id={'team-group-' + group.id}>{group.label}</h2>
                 <p>{group.about}</p>
               </div>
-              <span className="team-count">{people.length}</span>
             </header>
             <div className="team-people">
               {people.map((m, i) => (
