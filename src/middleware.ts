@@ -18,7 +18,8 @@ export async function middleware(request: NextRequest) {
       },
     },
   );
-  await db.auth.getUser();
+  // Refreshes an expired sign-in. The token is checked from its signature, so this needs no trip to the auth server.
+  await db.auth.getClaims();
   return response;
 }
 export const config = {

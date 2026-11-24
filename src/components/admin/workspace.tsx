@@ -924,7 +924,11 @@ export function Workspace({
       setDialog(section === 'people' ? 'profile' : 'detail');
     } else if (params.get('action')) setDialog(params.get('action'));
   }, [params]);
+  // The page arrives with its first list already loaded, so that exact view is not fetched a second time.
+  const servedView = useRef(JSON.stringify([section, 1, '', filter, 'newest', 0]));
   useEffect(() => {
+    if (servedView.current === JSON.stringify([section, page, search, filter, sort, revision])) return;
+    servedView.current = '';
     const abort = new AbortController();
     setBusy(true);
     const timer = setTimeout(() => {
