@@ -3271,12 +3271,7 @@ html[data-theme='dark'] .admin-login {
   font-variant-numeric: tabular-nums;
 }
 
-/* People: roles, duplicates and the "is this the same person?" prompts */
-.admin-roles {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+/* People: duplicates and the "is this the same person?" prompts */
 .admin-muted {
   color: var(--a-muted);
   font-size: 0.8rem;
