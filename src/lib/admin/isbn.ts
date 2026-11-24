@@ -36,3 +36,27 @@ export function extractIsbn(text: string): string | null {
   }
   return null;
 }
+
+/** The 13-digit form of a valid ISBN (an ISBN-10 is converted), or null. Books are filed under this one. */
+export function toIsbn13(text: string): string | null {
+  const isbn = normalizeIsbn(text);
+  if (!isbn) return null;
+  if (isbn.length === 13) return isbn;
+  const body = '978' + isbn.slice(0, 9);
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += Number(body[i]) * (i % 2 === 0 ? 1 : 3);
+  return body + ((10 - (sum % 10)) % 10);
+}
+
+/** The 10-digit form of a 978-prefixed ISBN-13 (the older form), or null when there is none. */
+export function toIsbn10(text: string): string | null {
+  const isbn = normalizeIsbn(text);
+  if (!isbn) return null;
+  if (isbn.length === 10) return isbn;
+  if (!isbn.startsWith('978')) return null;
+  const body = isbn.slice(3, 12);
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += Number(body[i]) * (10 - i);
+  const check = (11 - (sum % 11)) % 11;
+  return body + (check === 10 ? 'X' : String(check));
+}

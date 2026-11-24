@@ -46,7 +46,7 @@ test('lookup falls back to Google Books and returns null for unknown or invalid 
   }) as unknown as typeof fetch;
   const book = await lookupIsbn('9780306406157', fetchImpl);
   assert.equal(book?.title, 'Maths: Class 9');
-  assert.equal(calls, 2);
+  assert.equal(calls, 3, 'all three sources are asked at the same time');
   assert.equal(await lookupIsbn('9780306406157', json({}, 200)), null);
   assert.equal(await lookupIsbn('not an isbn', json({})), null);
 });
@@ -110,15 +110,48 @@ test('only real JPEG, PNG and WebP data URLs are accepted', () => {
 });
 
 test('a failed first request is retried once before a source is given up on', async () => {
-  let calls = 0;
-  const flaky = (async () => {
-    calls += 1;
-    if (calls === 1) throw new Error('connect timeout');
+  const tries: Record<string, number> = {};
+  const flaky = (async (url: string) => {
+    const key = url.includes('api/books') ? 'record' : 'other';
+    tries[key] = (tries[key] || 0) + 1;
+    if (key === 'other') return new Response('{}');
+    if (tries[key] === 1) throw new Error('connect timeout');
     return new Response(
       JSON.stringify({'ISBN:9780306406157': {title: 'Atlas', authors: [{name: 'A. Writer'}]}}),
     );
   }) as unknown as typeof fetch;
   const book = await lookupIsbn('9780306406157', flaky);
   assert.equal(book?.title, 'Atlas');
-  assert.equal(calls, 2);
+  assert.equal(tries.record, 2);
+});
+
+test('the sources are combined: one may know the title and another the author', async () => {
+  const mixed = (async (url: string) => {
+    if (url.includes('api/books'))
+      return new Response(JSON.stringify({'ISBN:9780306406157': {title: 'Atlas'}}));
+    if (url.includes('search.json')) return new Response('{}');
+    return new Response(
+      JSON.stringify({items: [{volumeInfo: {title: 'Atlas', authors: ['A. Writer'], categories: ['Maps']}}]}),
+    );
+  }) as unknown as typeof fetch;
+  const book = await lookupIsbn('9780306406157', mixed);
+  assert.equal(book?.title, 'Atlas');
+  assert.equal(book?.author, 'A. Writer');
+  assert.deepEqual(book?.categories, ['Maps']);
+});
+
+test('a source that is rate-limited or stuck does not block the others, and the ISBN-10 form is tried', async () => {
+  const urls: string[] = [];
+  const mixed = (async (url: string) => {
+    urls.push(url);
+    if (url.includes('googleapis')) return new Response('quota', {status: 429});
+    if (url.includes('search.json')) return new Promise<Response>(() => {});
+    return new Response(
+      JSON.stringify({'ISBN:0306406152': {title: 'Old record', authors: [{name: 'B. Author'}]}}),
+    );
+  }) as unknown as typeof fetch;
+  const book = await lookupIsbn('9780306406157', mixed, {deadlineMs: 2000});
+  assert.equal(book?.title, 'Old record');
+  assert.equal(book?.isbn, '9780306406157');
+  assert.ok(urls.some((u) => u.includes('ISBN:0306406152')));
 });

@@ -465,7 +465,10 @@ function DonationForm({onDone}: {onDone: (id: string) => void}) {
         <button type="button" className="admin-button secondary" onClick={() => setScanning(true)}>
           <Camera size={17} /> Scan books with the camera
         </button>
-        <small>Take a photo of a barcode or cover and the title, author and class fill in for you.</small>
+        <small>
+          Point the camera at the barcode on the back cover. The title and author fill in by themselves, and
+          books you have entered before fill in the class too.
+        </small>
       </div>
       {scanning && <BookScanner onAdd={addScanned} onClose={() => setScanning(false)} />}
       <label className="admin-inline-create">

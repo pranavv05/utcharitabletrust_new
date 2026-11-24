@@ -1,45 +1,80 @@
 'use client';
 import {extractIsbn} from './isbn';
+import type {Reading} from './barcode-core';
 
-type DetectorCtor = new (options?: {formats?: string[]}) => {
-  detect(image: ImageBitmap): Promise<{rawValue: string}[]>;
-};
+type Detector = {detect(image: CanvasImageSource): Promise<{rawValue: string}[]>};
+type DetectorCtor = new (options?: {formats?: string[]}) => Detector;
 
-/** Reads an ISBN barcode from a photo. Uses the browser's detector when it has one, else a bundled decoder. */
-export async function readBarcodeIsbn(file: Blob): Promise<string | null> {
+/** The browser's own barcode reader, which is fast and good, where it exists (Chrome on Android). */
+export function nativeDetector(): Detector | null {
   const Native = (window as unknown as {BarcodeDetector?: DetectorCtor}).BarcodeDetector;
-  if (Native) {
-    try {
-      const bitmap = await createImageBitmap(file);
-      const found = await new Native({formats: ['ean_13', 'ean_8', 'upc_a', 'code_128']}).detect(bitmap);
-      bitmap.close();
-      for (const item of found) {
-        const isbn = extractIsbn(item.rawValue);
-        if (isbn) return isbn;
-      }
-    } catch {
-      // fall back to the bundled decoder below
-    }
-  }
-  const url = URL.createObjectURL(file);
+  if (!Native) return null;
   try {
-    const [{BrowserMultiFormatReader}, {DecodeHintType, BarcodeFormat}] = await Promise.all([
-      import('@zxing/browser'),
-      import('@zxing/library'),
-    ]);
-    const hints = new Map();
-    hints.set(DecodeHintType.TRY_HARDER, true);
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A,
-    ]);
-    const result = await new BrowserMultiFormatReader(hints).decodeFromImageUrl(url);
-    return extractIsbn(result.getText());
+    return new Native({formats: ['ean_13', 'ean_8', 'upc_a']});
   } catch {
     return null;
+  }
+}
+
+async function nativeRead(detector: Detector, image: CanvasImageSource): Promise<Reading | null> {
+  try {
+    let other: string | null = null;
+    for (const item of await detector.detect(image)) {
+      const isbn = extractIsbn(item.rawValue);
+      if (isbn) return {isbn, other};
+      other ||= item.rawValue;
+    }
+    return {isbn: null, other};
+  } catch {
+    return null;
+  }
+}
+
+/** Reads the barcode on one frame of the live camera. The browser's reader is used when it has one. */
+export async function readFrame(
+  canvas: HTMLCanvasElement,
+  frame: number,
+  detector: Detector | null,
+): Promise<Reading> {
+  if (detector) {
+    const read = await nativeRead(detector, canvas);
+    if (read?.isbn) return read;
+  }
+  const context = canvas.getContext('2d', {willReadFrequently: true})!;
+  const {readIsbn, toGray} = await import('./barcode-core');
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+  return readIsbn(toGray(pixels.data, canvas.width, canvas.height), {frame});
+}
+
+/**
+ * Reads an ISBN barcode from a photo. Throws when the file is not a picture the browser can open.
+ * A phone photo is huge, so it is shrunk to a sensible size first; then the browser's reader is tried and
+ * the bundled reader tries the picture many ways (sizes, sideways, tilted) before giving up.
+ */
+export async function readBarcode(file: Blob): Promise<Reading> {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error('That file is not a photo this browser can open. Try a JPEG or PNG picture.');
+  }
+  try {
+    const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d', {willReadFrequently: true})!;
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const detector = nativeDetector();
+    if (detector) {
+      const read = await nativeRead(detector, canvas);
+      if (read?.isbn) return read;
+    }
+    const {readIsbn, toGray} = await import('./barcode-core');
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+    return readIsbn(toGray(pixels.data, canvas.width, canvas.height), {thorough: true});
   } finally {
-    URL.revokeObjectURL(url);
+    bitmap.close();
   }
 }
 

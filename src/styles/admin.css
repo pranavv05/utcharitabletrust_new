@@ -2386,7 +2386,7 @@ html[data-theme='dark'] .admin-login {
   padding: 0;
   border: 1px solid var(--a-line);
   border-radius: 14px;
-  background: var(--a-panel, var(--a-bg, #fff));
+  background: var(--a-card, #fff);
   color: inherit;
   overflow: hidden;
 }
@@ -2571,7 +2571,7 @@ html[data-theme='dark'] .admin-login {
   padding: 20px;
   border: 1px solid var(--a-line);
   border-radius: 16px;
-  background: var(--a-panel, var(--a-bg, #fff));
+  background: var(--a-card, #fff);
   color: inherit;
 }
 .admin-scanner::backdrop {
@@ -3328,4 +3328,78 @@ html[data-theme='dark'] .admin-login {
 .admin-duplicate-group h3 {
   margin: 0;
   font-size: 0.95rem;
+}
+
+/* Live camera in the book scanner */
+.admin-scanner-camera {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin: 12px 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #0b1624;
+  color: #e8f0fb;
+}
+.admin-scanner-camera video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  visibility: hidden;
+}
+.admin-scanner-camera.live video {
+  visibility: visible;
+}
+.admin-scanner-frame {
+  position: absolute;
+  top: 28%;
+  right: 8%;
+  bottom: 28%;
+  left: 8%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+}
+.admin-scanner-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 0.78rem;
+  text-align: center;
+}
+.admin-scanner-off {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 340px;
+  padding: 18px;
+  text-align: center;
+}
+.admin-scanner-off p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.admin-scanner-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.admin-scanner-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
