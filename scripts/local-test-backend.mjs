@@ -345,8 +345,13 @@ const cors = (req) => ({
   'Access-Control-Expose-Headers': 'Content-Range,Content-Type',
 });
 
+// For speed testing: LATENCY_MS makes every request wait that long (as a far-away server would), and
+// LOG_REQUESTS prints each request so the number of round trips a page needs can be counted.
+const LATENCY_MS = Number(process.env.LATENCY_MS || 0);
 createServer(async (req, res) => {
   const url = new URL(req.url, BASE);
+  if (process.env.LOG_REQUESTS) console.log('REQ', Date.now() % 100000, req.method, url.pathname.replace('/rest/v1/rpc/', 'rpc:'));
+  if (LATENCY_MS) await new Promise((r) => setTimeout(r, LATENCY_MS));
   const extra = cors(req);
   const reply = (status, body, headers = {}) => send(res, status, body, {...extra, ...headers});
   try {

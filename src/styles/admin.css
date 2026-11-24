@@ -3398,3 +3398,52 @@ html[data-theme='dark'] .admin-login {
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Placeholder shown while an admin page loads */
+.admin-loading {
+  display: grid;
+  gap: 14px;
+  padding: 8px 0;
+}
+.admin-loading-bar {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--a-line, rgba(128, 128, 128, 0.18)) 25%,
+    rgba(128, 128, 128, 0.08) 50%,
+    var(--a-line, rgba(128, 128, 128, 0.18)) 75%
+  );
+  background-size: 200% 100%;
+  animation: admin-loading-shine 1.3s linear infinite;
+}
+.admin-loading-title {
+  width: min(260px, 60%);
+  height: 30px;
+}
+.admin-loading-sub {
+  width: min(420px, 80%);
+  height: 16px;
+}
+.admin-loading-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid var(--a-line);
+  border-radius: 14px;
+  background: var(--a-card);
+}
+.admin-loading-row {
+  height: 40px;
+}
+@keyframes admin-loading-shine {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-loading-bar {
+    animation: none;
+  }
+}
