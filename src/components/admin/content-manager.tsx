@@ -1,10 +1,18 @@
 'use client';
-import {useEffect, useMemo, useState} from 'react';
+import {getJson} from '@/lib/admin/api-errors';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import Link from 'next/link';
 import {Search, Trash2, Pencil, ExternalLink, Plus, Upload} from 'lucide-react';
 import {Dialog, send} from './workspace';
 import {type Row} from '@/lib/admin/config';
-import {kindSpec, kindSpecs, publishIssues, slugify, type FieldSpec} from '@/lib/admin/content-kinds';
+import {
+  fallbackSlug,
+  kindSpec,
+  kindSpecs,
+  publishIssues,
+  slugify,
+  type FieldSpec,
+} from '@/lib/admin/content-kinds';
 import {uploadHelp, uploadImage, uploadLarge} from '@/lib/admin/media-client';
 import {yearOf} from '@/lib/media';
 import {GalleryBulkUpload} from './gallery-bulk-upload';
@@ -50,9 +58,7 @@ export function ContentManager() {
   async function load() {
     setLoading(true);
     try {
-      const r = await fetch('/api/admin/content');
-      const d = await r.json();
-      if (!r.ok) throw Error(d.message);
+      const d = await getJson('/api/admin/content');
       setRows(d);
       setError('');
     } catch (e) {
@@ -706,6 +712,7 @@ function ContentForm({
     [status, setStatus] = useState(String(row?.status || 'draft')),
     [order, setOrder] = useState(String(row?.sort_order ?? 0)),
     [error, setError] = useState('');
+  const slugTyped = useRef(false);
   const issues = publishIssues(kind, data, name);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -717,16 +724,27 @@ function ContentForm({
     setError('');
     try {
       const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== ''));
-      await send('content', {
+      const payload = {
         id: row?.id,
         expected_updated_at: row?.updated_at,
         kind,
         name,
-        slug,
+        slug: slug.trim() || (spec.single ? slug : fallbackSlug(kind)),
         status,
         data: clean,
         sort_order: Number(order) || 0,
-      });
+      };
+      try {
+        await send('content', payload);
+      } catch (e) {
+        // Two items with the same headline get the same web address. For a new item whose address was made
+        // automatically, add a short ending instead of making the person work out what went wrong.
+        if (row || spec.single || slugTyped.current || !/already exists/i.test((e as Error).message)) throw e;
+        await send('content', {
+          ...payload,
+          slug: payload.slug.slice(0, 114).replace(/-$/, '') + '-' + fallbackSlug('x').slice(-4),
+        });
+      }
       onDone();
     } catch (e) {
       setError((e as Error).message);
@@ -754,12 +772,19 @@ function ContentForm({
           <label>
             Web address ending (slug)
             <input
-              required
               pattern="[a-z0-9]+(-[a-z0-9]+)*"
               maxLength={120}
               value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              placeholder="Filled in automatically"
+              onChange={(e) => {
+                slugTyped.current = true;
+                setSlug(e.target.value);
+              }}
             />
+            <small>
+              Letters, numbers and dashes only. Leave it empty and one is made for you (for example when the
+              headline is written in Hindi).
+            </small>
           </label>
         )}
         {spec.fields.map((field) => {

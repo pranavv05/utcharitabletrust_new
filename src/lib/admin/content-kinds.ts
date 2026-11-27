@@ -329,3 +329,17 @@ export function slugify(value: string) {
     .replace(/^-|-$/g, '')
     .slice(0, 120);
 }
+
+/** A web address ending for when the title has no Latin letters or digits (Hindi, symbols only). */
+export function fallbackSlug(kind: string, now = new Date(), random = Math.random()) {
+  const day = now.toISOString().slice(0, 10).replace(/-/g, '');
+  return (
+    slugify(kind.replace(/_/g, '-')) +
+    '-' +
+    day +
+    '-' +
+    Math.floor(random * 36 ** 4)
+      .toString(36)
+      .padStart(4, '0')
+  );
+}

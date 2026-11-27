@@ -1,4 +1,5 @@
 'use client';
+import {getJson} from '@/lib/admin/api-errors';
 import {useEffect, useState} from 'react';
 import {send} from './workspace';
 import type {Row} from '@/lib/admin/config';
@@ -10,9 +11,7 @@ export function ConflictReview() {
   async function load() {
     setLoading(true);
     try {
-      const r = await fetch('/api/admin/conflicts');
-      const d = await r.json();
-      if (!r.ok) throw Error(d.message);
+      const d = await getJson('/api/admin/conflicts');
       setRows(d);
       setError('');
     } catch (e) {

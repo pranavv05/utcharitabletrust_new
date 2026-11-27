@@ -1,11 +1,18 @@
 'use client';
 import {browserClient} from '@/lib/supabase/browser';
 import {largeUploads, validateLargeUpload} from './media-upload';
+import {webSized} from './image-resize';
 import {prepareVideo} from './video-shrink';
 
-/** Uploads a JPEG, PNG or WebP photograph (up to 5 MB) and returns its public URL. */
+/**
+ * Uploads a JPEG, PNG or WebP photograph and returns its public URL. Phone and camera photos are often 5-12 MB,
+ * so anything over 1.5 MB is first shrunk in the browser to a web-sized copy (the original is never needed).
+ */
 export async function uploadImage(file: File): Promise<string> {
-  if (file.size > 5 * 1024 * 1024) throw Error('Image must be under 5 MB.');
+  if (file.size === 0) throw Error('That file is empty.');
+  if (file.size > 1.5 * 1024 * 1024) file = await webSized(file, 2000, 0.85);
+  if (file.size > 5 * 1024 * 1024)
+    throw Error('That photo is still over 5 MB after shrinking. Try a smaller photo.');
   const form = new FormData();
   form.set('file', file);
   const response = await fetch('/api/admin-media', {method: 'POST', body: form});
@@ -39,8 +46,8 @@ export async function uploadLarge(file: File, onShrink?: (fraction: number) => v
 }
 
 export const uploadHelp = {
-  image: 'JPEG, PNG or WebP, up to 5 MB.',
-  file: `PDF (${largeUploads['application/pdf'].label}) or a JPEG, PNG or WebP image up to 5 MB.`,
+  image: 'JPEG, PNG or WebP. Large photos are shrunk automatically.',
+  file: `PDF (${largeUploads['application/pdf'].label}) or a JPEG, PNG or WebP image (large photos are shrunk automatically).`,
   video:
     'MP4 or WebM. Videos over 50 MB are shrunk automatically before upload (keep the screen on while it works). For very long videos, paste a YouTube or Vimeo link instead.',
 };

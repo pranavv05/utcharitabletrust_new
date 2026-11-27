@@ -11,8 +11,11 @@ export async function POST(request: Request) {
   try {
     const form = await request.formData();
     const file = form.get('file');
-    if (!(file instanceof File) || file.size > 5242880 || file.size < 12)
-      return NextResponse.json({message: 'Choose a JPEG, PNG or WebP image under 5 MB.'}, {status: 400});
+    if (!(file instanceof File))
+      return NextResponse.json({message: 'Choose a JPEG, PNG or WebP image.'}, {status: 400});
+    if (file.size > 5242880) return NextResponse.json({message: 'Image must be under 5 MB.'}, {status: 413});
+    if (file.size < 12)
+      return NextResponse.json({message: 'That file is empty or too small to be an image.'}, {status: 400});
     const bytes = new Uint8Array(await file.arrayBuffer());
     const png = bytes.slice(0, 8).every((x, i) => x === [137, 80, 78, 71, 13, 10, 26, 10][i]);
     const jpeg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
