@@ -28,15 +28,9 @@ import {
 } from 'lucide-react';
 import {sections, labels, display, type Row, type Section, type Field} from '@/lib/admin/config';
 import {Badge} from './dashboard';
-export async function send(entity: string, body: unknown) {
-  const r = await fetch('/api/admin/' + entity, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body),
-  });
-  const data = await r.json();
-  if (!r.ok) throw Error(data.message || 'Unable to save.');
-  return data;
+import {getJson, postJson} from '@/lib/admin/api-errors';
+export function send(entity: string, body: unknown) {
+  return postJson('/api/admin/' + entity, body);
 }
 function ErrorMessage({message}: {message: string}) {
   return message ? (
@@ -460,7 +454,14 @@ function DonationForm({onDone}: {onDone: (id: string) => void}) {
   }
   return (
     <form className="admin-form" onSubmit={submit}>
-      <PersonChooser label="Donor" selected={person} onChange={setPerson} />
+      <PersonChooser
+        label="Donor"
+        selected={person}
+        onChange={(rows) => {
+          setPerson(rows);
+          setError('');
+        }}
+      />
       <div className="admin-scan-cta">
         <button type="button" className="admin-button secondary" onClick={() => setScanning(true)}>
           <Camera size={17} /> Scan books with the camera
@@ -592,7 +593,14 @@ function IssueForm({onDone}: {onDone: (id: string) => void}) {
   }
   return (
     <form className="admin-form" onSubmit={submit}>
-      <PersonChooser label="Borrower" selected={person} onChange={setPerson} />
+      <PersonChooser
+        label="Borrower"
+        selected={person}
+        onChange={(rows) => {
+          setPerson(rows);
+          setError('');
+        }}
+      />
       <div className="admin-form-grid">
         <label>
           Issue date
@@ -911,6 +919,10 @@ export function Workspace({
   );
   const [row, setRow] = useState<Row | null>(params.get('id') ? {id: params.get('id')} : null);
   const [revision, setRevision] = useState(0);
+  // A message about one record must not follow the person to the next dialog.
+  useEffect(() => {
+    setError('');
+  }, [dialog, row?.id]);
   const configFields: Field[] = cfg.fields;
   const isTransaction = ['loans', 'donations', 'returns'].includes(section);
   useEffect(() => {
@@ -932,15 +944,10 @@ export function Workspace({
     const abort = new AbortController();
     setBusy(true);
     const timer = setTimeout(() => {
-      fetch(
+      getJson(
         `/api/admin/${section}?page=${page}&search=${encodeURIComponent(search)}&filter=${encodeURIComponent(filter)}&sort=${sort}`,
         {signal: abort.signal},
       )
-        .then(async (r) => {
-          const data = await r.json();
-          if (!r.ok) throw Error(data.message);
-          return data;
-        })
         .then((d) => {
           setRecords(d);
           setPage((p) => clampRecordPage(p, d.total));

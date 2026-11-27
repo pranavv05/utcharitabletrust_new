@@ -14,10 +14,11 @@ export async function GET(request: Request, {params}: {params: Promise<{entity: 
   const {entity} = await params;
   const url = new URL(request.url);
   let result;
-  if (entity === 'person')
-    result = await ctx.db.rpc('admin_person', {p_id: url.searchParams.get('id') || ''});
-  else if (entity === 'application')
-    result = await ctx.db.rpc('admin_application', {p_id: url.searchParams.get('id') || ''});
+  const id = url.searchParams.get('id') || '';
+  if (['person', 'application', 'record'].includes(entity) && !/^[0-9a-f-]{36}$/i.test(id))
+    return NextResponse.json({message: 'That record could not be found.'}, {status: 404});
+  if (entity === 'person') result = await ctx.db.rpc('admin_person', {p_id: id});
+  else if (entity === 'application') result = await ctx.db.rpc('admin_application', {p_id: id});
   else if (entity === 'conflicts') result = await ctx.db.rpc('admin_conflicts');
   else if (entity === 'duplicates') result = await ctx.db.rpc('admin_duplicate_people');
   else if (entity === 'content')
@@ -26,8 +27,17 @@ export async function GET(request: Request, {params}: {params: Promise<{entity: 
     const kind = url.searchParams.get('kind') || 'loans',
       from = url.searchParams.get('from') || '',
       to = url.searchParams.get('to') || '';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to))
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(from) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(to) ||
+      isNaN(Date.parse(from)) ||
+      isNaN(Date.parse(to))
+    )
       return NextResponse.json({message: 'Choose valid dates.'}, {status: 400});
+    if (from > to)
+      return NextResponse.json({message: 'The start date must not be after the end date.'}, {status: 400});
+    if (!['loans', 'donations', 'returns', 'overdue'].includes(kind))
+      return NextResponse.json({message: 'Choose a report to show.'}, {status: 400});
     result = await ctx.db.rpc('admin_report', {p_kind: kind, p_from: from, p_to: to});
     if (url.searchParams.get('format') === 'csv') {
       if (ctx.staff.role === 'viewer')
@@ -46,12 +56,13 @@ export async function GET(request: Request, {params}: {params: Promise<{entity: 
   else if (entity === 'record')
     /* only loans have a detail record */ result = await ctx.db.rpc('admin_record', {
       p_entity: 'loans',
-      p_id: url.searchParams.get('id') || '',
+      p_id: id,
     });
   else if (Object.hasOwn(sections, entity))
     result = await ctx.db.rpc('admin_list', {
       p_entity: entity,
-      p_search: (url.searchParams.get('search') || '').slice(0, 150),
+      // eslint-disable-next-line no-control-regex
+      p_search: (url.searchParams.get('search') || '').replace(/\p{Cc}/gu, ' ').slice(0, 150),
       p_page: parsePage(url.searchParams.get('page')),
       p_filter: (url.searchParams.get('filter') || '').slice(0, 40),
       p_sort: (url.searchParams.get('sort') || 'newest').slice(0, 20),

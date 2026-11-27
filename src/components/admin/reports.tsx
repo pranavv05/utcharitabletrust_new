@@ -1,4 +1,5 @@
 'use client';
+import {getJson} from '@/lib/admin/api-errors';
 import {trustDate} from '@/lib/admin/dates';
 import {useEffect, useState, useRef} from 'react';
 import {display, type Row} from '@/lib/admin/config';
@@ -29,9 +30,7 @@ export function Reports({canExport}: {canExport: boolean}) {
     setBusy(true);
     setError('');
     try {
-      const r = await fetch('/api/admin/reports?' + query, {signal: controller.signal});
-      const d = await r.json();
-      if (!r.ok) throw Error(d.message);
+      const d = await getJson('/api/admin/reports?' + query, {signal: controller.signal});
       if (controller.signal.aborted) return;
       setReport(d);
       setPage(1);

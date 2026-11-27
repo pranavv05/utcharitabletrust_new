@@ -3447,3 +3447,9 @@ html[data-theme='dark'] .admin-login {
     animation: none;
   }
 }
+
+/* Very long names or addresses wrap instead of running out of the box */
+.admin-picker-options > button > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
