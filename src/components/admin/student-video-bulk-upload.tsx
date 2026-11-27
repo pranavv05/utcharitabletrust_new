@@ -83,7 +83,9 @@ export function StudentVideoBulkUpload({onClose, onDone}: {onClose: () => void; 
   async function process(item: Item, order: number) {
     patch(item.id, {state: 'working', note: 'Uploading video…'});
     try {
-      const videoUrl = await uploadLarge(item.file);
+      const videoUrl = await uploadLarge(item.file, (fraction) =>
+        patch(item.id, {note: `Shrinking video… ${Math.round(fraction * 100)}%`}),
+      );
       patch(item.id, {note: 'Making preview…'});
       const poster = await videoPoster(item.file);
       const image = poster ? await uploadImage(poster).catch(() => '') : '';
@@ -150,7 +152,10 @@ export function StudentVideoBulkUpload({onClose, onDone}: {onClose: () => void; 
             {items.length ? <Film size={20} /> : <Upload size={26} />}
           </span>
           <strong>{items.length ? 'Choose different videos' : 'Choose video files'}</strong>
-          <small>MP4 or WebM, up to 50 MB each. Select many at once with Ctrl+A in the folder.</small>
+          <small>
+            MP4 or WebM. Videos over 50 MB are shrunk automatically (Chrome or Edge). Select many at once with
+            Ctrl+A in the folder.
+          </small>
         </label>
         {skipped > 0 && (
           <p className="admin-notice">
