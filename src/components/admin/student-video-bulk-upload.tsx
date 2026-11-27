@@ -153,8 +153,8 @@ export function StudentVideoBulkUpload({onClose, onDone}: {onClose: () => void; 
           </span>
           <strong>{items.length ? 'Choose different videos' : 'Choose video files'}</strong>
           <small>
-            MP4 or WebM. Videos over 50 MB are shrunk automatically (Chrome or Edge). Select many at once with
-            Ctrl+A in the folder.
+            MP4 or WebM. Videos over 50 MB are shrunk automatically (keep this screen open). Select many at
+            once with Ctrl+A in the folder.
           </small>
         </label>
         {skipped > 0 && (

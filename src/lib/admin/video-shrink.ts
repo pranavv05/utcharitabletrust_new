@@ -47,7 +47,7 @@ export function prepareVideo(file: File, onProgress?: (fraction: number) => void
 async function shrink(file: File, onProgress?: (fraction: number) => void): Promise<File> {
   if (typeof VideoEncoder === 'undefined')
     throw Error(
-      'This browser cannot shrink videos. Use Chrome or Edge on a computer, or paste a YouTube or Vimeo link.',
+      'This browser cannot shrink videos. Try the latest Chrome, Edge or Safari, or paste a YouTube or Vimeo link.',
     );
   const {ALL_FORMATS, BlobSource, BufferTarget, Conversion, Input, Mp4OutputFormat, Output} =
     await import('mediabunny');
@@ -69,7 +69,7 @@ async function shrink(file: File, onProgress?: (fraction: number) => void): Prom
       });
       if (!conversion.isValid)
         throw Error(
-          'This browser cannot convert that video. Use Chrome or Edge on a computer, or paste a YouTube or Vimeo link.',
+          'This browser cannot convert that video. Try the latest Chrome, Edge or Safari, or paste a YouTube or Vimeo link.',
         );
       conversion.onProgress = (fraction) => onProgress?.(Math.min(1, fraction));
       await conversion.execute();

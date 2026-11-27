@@ -42,5 +42,5 @@ export const uploadHelp = {
   image: 'JPEG, PNG or WebP, up to 5 MB.',
   file: `PDF (${largeUploads['application/pdf'].label}) or a JPEG, PNG or WebP image up to 5 MB.`,
   video:
-    'MP4 or WebM. Videos over 50 MB are shrunk automatically before upload (Chrome or Edge on a computer). For very long videos, paste a YouTube or Vimeo link instead.',
+    'MP4 or WebM. Videos over 50 MB are shrunk automatically before upload (keep the screen on while it works). For very long videos, paste a YouTube or Vimeo link instead.',
 };
