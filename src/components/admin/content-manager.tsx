@@ -607,6 +607,7 @@ function MediaField({
   onError: (message: string) => void;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [shrinking, setShrinking] = useState<number | null>(null);
   const multiple = field.type === 'images';
   const accept =
     field.type === 'image' || multiple
@@ -622,13 +623,14 @@ function MediaField({
       const urls: string[] = [];
       for (const file of Array.from(files)) {
         const isImage = file.type.startsWith('image/');
-        urls.push(isImage ? await uploadImage(file) : await uploadLarge(file));
+        urls.push(isImage ? await uploadImage(file) : await uploadLarge(file, setShrinking));
       }
       onChange(multiple ? [value.trim(), ...urls].filter(Boolean).join('\n') : urls[0]);
     } catch (e) {
       onError((e as Error).message);
     } finally {
       setUploading(false);
+      setShrinking(null);
     }
   }
   const previews = (multiple ? value.split('\n') : [value]).map((v) => v.trim()).filter(Boolean);
@@ -663,7 +665,9 @@ function MediaField({
       />
       <small>
         {uploading
-          ? 'Uploading…'
+          ? shrinking !== null
+            ? `Shrinking the video to fit… ${Math.round(shrinking * 100)}%`
+            : 'Uploading…'
           : field.type === 'file'
             ? uploadHelp.file
             : field.type === 'video'
